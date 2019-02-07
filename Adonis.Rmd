@@ -5,9 +5,6 @@ date: "January 22, 2019"
 output: html_document
 ---
 
-NOTES
-- should the site information be kept? It doesn't seem like the analysis will be important there.
-- one of the analyses I ran looks funny, need to double check that 
 
 This set of analyses is to look at differences in community composition between drought and non-drought years. This requires construction  of community similarity/dissimilarity matrices and conducting Adonis analyses, with drought vs. nondrought as the fixed effects. Adonis is useful for this analysis as it uses strata which takes into account random effects (e.g. year) (???). We will use the Morisita-Horn index with Adonis as is is insensitve to differences in sampling effort among catagories. Therefore we can use raw data without correcting for sampling effort. 
 
