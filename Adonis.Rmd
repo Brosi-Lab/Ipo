@@ -184,4 +184,12 @@ adonis(beta ~ Year, all.des, strata = all.des$Drought, perm = 999)
 adonis(beta ~ Drought, all.des, strata = all.des$Year, perm = 999)
 ```
 
-We have results! The problem is that I'm a bit confused about by we're getting here. For the second test, testing differences in drought stratifying by years, we obtain a p-value of 1, which is not correct. I think that I need to double check a few more things before I can talk to Berry. 
+We have results! The problem is that I'm a bit confused about by we're getting here. For the second test, testing differences in drought stratifying by years, we obtain a p-value of 1, which is not correct. 
+
+However, if we do not stratify by year...
+
+```{r}
+adonis(beta ~ Drought, all.des, perm = 999)
+```
+
+Then this problem doesn't occur.
