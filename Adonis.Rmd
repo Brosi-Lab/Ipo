@@ -157,6 +157,11 @@ From my understanding of Adonis, a separate dataframe is required for the other 
 ```{r}
 #create dataframe
 all.des <- all.years[,-c(1:9)]
+
+#add site information
+all.des <- cbind(all.des, c("P1", "T1", "V1", "P2", "T2", "V2", "P3", "T3", "V3", "APS", "APU", "Back of Baldy Bend", "Baldy Lunch", "Bellview Bench", "Bellview View", "billy's Hilly Lower", "billy's Hilly Upper", "Emerald Lake Lower", "Emerald Lake Upper", "End of Gothic Hill", "Kebler Pass", "Long Lake Parking Lot 1", "Long Lake Parking Lot 2", "Long Lake Parking Lot 3", "Long Lake Parking Lot 4", "Max Field Meadow Lower", "Max Field Meadow Upper", "Ol' Dusty Road", "Rosy Point Lower", "Rosy Point Upper", "Schofield/Vera Falls", "Slate River 2", "Up on dat hill", "Vera Falls", "Vera Falls 2", "Avery Slope", "Behind Rustler's Gultch", "Bellview Bench Park", "Bellview View2", "East River Overlook", "Rosy Point", "Vera Falls2"))
+#name site column
+colnames(all.des)[3] <- "Site"
 ```
 
 Lastly, the all.years dataframe should be formated as a matrix. The Drought and Year columns should be subtracted
