@@ -135,7 +135,8 @@ totals97 <- rbind(totals97, list(0)) #nectar robber
 totals97 <- rbind(totals97, list(0)) #other fly
 totals97 <- rbind(totals97, list(0)) #small insect
 #sort in decreasing order
-totals97<- sort(totals97$`rowSums(tvisbun97)`, decreasing=TRUE)
+totals97 <- sort(totals97$`rowSums(tvisbun97)`, decreasing=TRUE)
+
 
 #1998
 # make dataframe for 1998
@@ -149,7 +150,7 @@ totals98 <- rbind(totals98, list(0)) #nectar robber
 totals98 <- rbind(totals98, list(0)) #butterfly
 totals98 <- rbind(totals98, list(0)) #small insect
 #sort in decreasing order
-totals98<- sort(totals98$`rowSums(tvisbun98)`, decreasing=TRUE)
+totals98 <- sort(totals98$`rowSums(tvisbun98)`, decreasing=TRUE)
 
 
 #2001
@@ -196,7 +197,9 @@ totals18 <- sort(totals18$`rowSums(tvisbun18)`, decreasing=TRUE)
 Now that individual dataframes are created for each year, its necessary to combine them into one dataframe.
 
 ```{r}
-both <- cbind(totals97, totals98,  totals01, totals12, totals18)
+both <- cbind(totals97, totals98, totals01, totals12, totals18)
+colnames(both) <- c("1997", "1998", "2001", "2012", "2018")
+
 ```
 
 Next is the actual iNEXT analysis. There is some reformating needed here to make drought and non-drought clearer. I will likely rename each of the years (i.e. totals96 -> 1996) moving forward.
@@ -208,10 +211,16 @@ out2 <- iNEXT(both, q=c(0, 1), datatype="abundance", endpoint=NULL)
 
 # R/E curves, separating by "site""
 allplot <- ggiNEXT(out2, type=1, facet.var="site") + 
-   xlim(0,300) 
+  xlim(0,300) +
+  facet_wrap(~site, nrow = 3) +
+  labs(title = "Niche Breadth Change",
+       subtitle = "iNEXT",
+       y = "Species Diversity", 
+       x = "# of individuals") +
+  theme_bw()
+  
 
-print(allplot) +
-  facet_wrap(~site, nrow = 2)
+print(allplot) 
 ```
 
 
