@@ -193,3 +193,9 @@ adonis(beta ~ Drought, all.des, perm = 999)
 ```
 
 Then this problem doesn't occur.
+
+
+```{r}
+adonis(beta ~ Drought, alld, strata = alld$Site, perm = 999)
+```
+

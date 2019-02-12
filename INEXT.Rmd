@@ -18,6 +18,7 @@ library(dplyr)
 library(tidyverse)
 library(reshape2)
 library(iNEXT)
+library(gridExtra)
 ```
 
 
@@ -209,18 +210,20 @@ Next is the actual iNEXT analysis. There is some reformating needed here to make
 #iNEXT analysis using individual based rarefaction
 out2 <- iNEXT(both, q=c(0, 1), datatype="abundance", endpoint=NULL)
 
+
 # R/E curves, separating by "site""
 allplot <- ggiNEXT(out2, type=1, facet.var="site") + 
-  xlim(0,300) +
+  xlim(0,1000) +
   facet_wrap(~site, nrow = 3) +
   labs(title = "Niche Breadth Change",
        subtitle = "iNEXT",
        y = "Species Diversity", 
        x = "# of individuals") +
-  theme_bw()
+  theme_gray()
   
-
 print(allplot) 
+
+
 ```
 
 
@@ -232,11 +235,25 @@ We will need to decide if we will keep each Hill number or only use a certain on
 *We have decided to only use Hill numbers 0 (species richness) and 1 (Shannon's diversity)
 
 ```{r}
+d1 <- iNEXT(both, q=c(0), datatype="abundance", endpoint=NULL)
+d2 <- iNEXT(both, q=c(1), datatype="abundance", endpoint=NULL)
+
 # R/E curves, separating by "order""
-order <- ggiNEXT(out2, type=1, facet.var="order") + 
-  xlim(0,450)
+g1 <- ggiNEXT(d1, type=1) + 
+  xlim(0,350) +
+  scale_colour_manual(values=c("mediumturquoise", "mediumturquoise", "mediumturquoise", "indianred1", "indianred1")) +
+  scale_fill_manual(values=c("mediumturquoise", "mediumturquoise", "mediumturquoise", "indianred1", "indianred1")) +
+  theme_bw()
+
+g2 <- ggiNEXT(d2, type=1) + 
+  xlim(0,350) +
+  scale_colour_manual(values=c("mediumturquoise", "mediumturquoise", "mediumturquoise", "indianred1", "indianred1")) +
+  scale_fill_manual(values=c("mediumturquoise", "mediumturquoise", "mediumturquoise", "indianred1", "indianred1")) +
+  theme_bw()
  
 print(order)
+
+grid.arrange(g1, g2, ncol = 2)
 ```
 
 Summary: These figures show higher diversity in the years 2018 and 2012. Utlizing a richness index (q=0), the three non-drought years (1997, 1998, 2001) show overlap, with slight overlap with 2018. Utlizing the Shannon's index (q=1), both 2012 and 2018 show higher diversity than the non-drought years.
@@ -244,8 +261,6 @@ Summary: These figures show higher diversity in the years 2018 and 2012. Utlizin
 Now that this is complete we will run an analysis with only two groups, drought and non-drought. This gets at our overall question in species richness difference between the two. Again, we expect higher species richness in drought years than non-drought years, indicating broader niche breadth. 
 
 First the drought and non-drought data must be combined into a dataframe. From the "both" dataframe that contains all groups two new dataframes will be created that sum the drought data (2012 and 2018) and then the non-drought data (1997, 1998, 2001). 
-
-
 
 ```{r}
 bothdf <- as.data.frame(both)
@@ -266,6 +281,7 @@ nondrought <- as.data.frame(nondrought)
 two <- cbind(drought, nondrought)
 ```
 
+
 Now for the iNEXT analysis of drought vs. nondrought
 
 This first graph will show the rarefaction for each group individually. 
@@ -281,11 +297,38 @@ print(final)
 
 This plot shows the data separated by Hill number, 0 and 1. 
 ```{r}
+i1 <- iNEXT(two, q=c(0), datatype="abundance", endpoint=NULL)
+i2 <- iNEXT(two, q=c(1), datatype="abundance", endpoint=NULL)
+
 # R/E curves, separating by "order""
-order2 <- ggiNEXT(out, type=1, facet.var="order") + 
-  xlim(0,300)
+order1 <- ggiNEXT(i1, type=1) + 
+  xlim(0,300) +
+  ylim(0, 8) +
+  theme_bw() +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) +
+  labs(x = "number of individuals") +
+  labs(title = "richness")
+ # scale_colour_manual(values=c("red", "blue")) 
+
+gb4 <- ggplot_build(order1)
+gb4$data[[2]]$size <- .5
+
+order2 <- ggiNEXT(i2, type=1) + 
+  xlim(0,300) +
+  ylim(0, 8) + 
+  theme_bw() +
+  theme(legend.position = "right", plot.title = element_text(hjust = 0.5)) +
+  labs(x = "number of individuals") +
+  labs(title = "Shannon")
+ # scale_colour_manual(values=c("red", "blue")) 
+  
+gb3 <- ggplot_build(order1)
+gb3$data[[2]]$size <- .5
+
  
+plot(order1) 
 print(order2)
+grid.arrange(order1, order2, ncol = 2)
 ```
 
 Summary: This graph shows significant differences in diversity between drought and non-drought years using both richness (q=0) and Shannon's diversity (q=1). Greater species diversity was shown in drought years using both metrics.
