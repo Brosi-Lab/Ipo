@@ -241,7 +241,7 @@ ordiplot(nmds,type="n") + # no points
 ```
 
 
-This visualization g ives several important pieces of information. Green/blue specifies non-drought and red is Drought for both the circles and the sites. We see that the two areas show some overlap intidating partial similarities in composition. Some sites fall away from the expexted drought and non-drought years, indiciating within year differences. 
+This visualization g ives several important pieces of information. Green/blue specifies non-drought and red is Drought for both the circles and the sites. We see that the two areas show some overlap intidating partial similarities in composition. 
 
 TBD THINGS
 ```{r environment}
