@@ -278,7 +278,7 @@ out <- iNEXT(tv, q=c(0, 1), datatype="abundance", endpoint=NULL)
 ```
 
 This first plot gives us `q=0` and `q=1` for year each. Each is is on a separate graphs. 
-```{r}
+```{r all graphing}
 # R/E curves, separating by "site""
 allplot <- ggiNEXT(out, type=1, facet.var="site") + 
   xlim(0,1000) +
