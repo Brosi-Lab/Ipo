@@ -12,7 +12,6 @@ This code impliments non-metric multi-dimensional scaling (NMDS) to visualize co
 The first two code chunks provide background set up and load needed packages. 
 
 ```{r setup, include=FALSE}
-
 #clear environment
 rm(list = ls())
 ```
@@ -27,8 +26,7 @@ library(reshape2)
 library(GGally)
 ```
 
-
-Data is imported from excel files which contain visitation data by species group, as well as site, year, and drought information. 
+Data is imported from excel files which contain visitation data by visitor category, as well as site, year, and drought information. 
 
 ```{r data inport}
 
@@ -62,12 +60,12 @@ tv97 <- tv97[, -1] #delete
 #rename rows as sites
 row.names(tv97) <- c("P97", "T97", "V97")
 #Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
-tv97 <- cbind(tv97, "Other fly" = c(0, 0, 0), "Nectar robber" = c(0, 0, 0), "Small insect" = c(0, 0, 0), "Wasp" = c(0, 0, 0)) #add missing columns
-tv97 <- tv97[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")] #order columns alphabetically
+tv97 <- cbind(tv97, "Other fly" = c(0, 0, 0), "Wasp" = c(0, 0, 0)) #add missing columns
+tv97 <- tv97[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Solitary bee", "Wasp")] #order columns alphabetically
 #add year column
-tv97 <- cbind(tv97, "Year" = c(1997, 1997, 1997))
+tv97 <- cbind(tv97, "Year" = rep("1997", length(tv97$Butterfly)))
 #add drought column
-tv97 <- cbind(tv97, "Drought" = c("Non-drought", "Non-drought", "Non-drought"))
+tv97 <- cbind(tv97, "Drought" = rep("Non-drought", length(tv97$Butterfly)))
 ```
 
 1998: 
@@ -88,12 +86,12 @@ tv98 <- tv98[, -1] #delete
 #rename rows as sites
 row.names(tv98) <- c("P98", "T98", "V98")
 #Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
-tv98 <- cbind(tv98, "Butterfly" = c(0, 0, 0), "Nectar robber" = c(0, 0, 0), "Small insect" = c(0, 0, 0), "Wasp" = c(0, 0, 0)) #add missing columns
-tv98 <- tv98[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")] #order columns alphabetically
+tv98 <- cbind(tv98, "Butterfly" = c(0, 0, 0), "Wasp" = c(0, 0, 0)) #add missing columns
+tv98 <- tv98[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Solitary bee", "Wasp")] #order columns alphabetically
 #add year
-tv98 <- cbind(tv98, "Year" = c(1998, 1998, 1998))
+tv98 <- cbind(tv98, "Year" = rep("1998", length(tv98$Butterfly)))
 #add drought
-tv98 <- cbind(tv98, "Drought" = c("Non-drought", "Non-drought", "Non-drought"))
+tv98 <- cbind(tv98, "Drought" = rep("Non-drought", length(tv98$Butterfly)))
 ```
 
 2001:
@@ -116,12 +114,12 @@ row.names(tv01) <- c("P01", "T01", "V01")
 #removes Gnat column (not a comparable observation type)
 tv01 <- tv01[ ,-c(2, 3)] 
 #Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
-tv01 <- cbind(tv01, "Nectar robber" = c(0, 0, 0), "Small insect" = c(0, 0, 0), "Butterfly" = c(0, 0, 0)) #add missing columns
-tv01 <- tv01[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")] #order columns
+tv01 <- cbind(tv01, "Butterfly" = c(0, 0, 0)) #add missing columns
+tv01 <- tv01[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Solitary bee", "Wasp")] #order columns
 #add year
-tv01 <- cbind(tv01, "Year" = c(2001, 2001, 2001))
+tv01 <- cbind(tv01, "Year" = rep("2001", length(tv01$Butterfly)))
 #add drought
-tv01 <- cbind(tv01, "Drought" = c("Non-drought", "Non-drought", "Non-drought"))
+tv01 <- cbind(tv01, "Drought" = rep("Non-drought", length(tv01$Butterfly)))
 ```
 
 2012:
@@ -132,8 +130,6 @@ tv01 <- cbind(tv01, "Drought" = c("Non-drought", "Non-drought", "Non-drought"))
 
 #treat year as factor
 ipo2012$Year <- as.factor(ipo2012$Year)
-#treat NAs as 1
-ipo2012[is.na(ipo2012)] <- 1
 #create dataframe with site, visitor, and total visits
 df12 <- cbind.data.frame(mdtsite = ipo2012$Site, mdtvisitor = ipo2012$Visitor, total.vis = ipo2012$Total.Visits)
 #organize data by site then visitor
@@ -146,12 +142,14 @@ row.names(tv12) <- c("APS", "APU", "BBB", "BL", "BB", "BV12", "bHL", "bHU", "ELL
 #removes Gnat column
 tv12 <- tv12[,-c(3)]
 #Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
-tv12 <- cbind(tv12, "Nectar robber" = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)) #add missing columns
-tv12 <- tv12[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")] #order columns
+tv12 <- cbind(tv12, "Nectar robber" = rep("0", length(tv12$Butterfly))) #add missing columns
+tv12 <- tv12[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Small insect", "Solitary bee", "Wasp")] #order columns
 #add year
-tv12 <- cbind(tv12, "Year" = c(2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012))
+tv12 <- cbind(tv12, "Year" = rep("2012", length(tv12$Butterfly)))
 #add drought
-tv12 <- cbind(tv12, "Drought" = c("Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought"))
+tv12 <- cbind(tv12, "Drought" = rep("Drought", length(tv12$Butterfly)))
+tv12 <- tv12[, -6] #delete Small Insect column
+
 ```
 
 2018: 
@@ -172,12 +170,14 @@ tv18 <- tv18[, -1] #delete
 #rename rows as sites
 row.names(tv18) <- c("AS", "BRG", "BBP", "BV", "ERO", "RP", "VF18")
 #Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
-tv18 <- cbind(tv18, "Nectar robber" = c(0, 0, 0, 0, 0, 0, 0), "Solitary bee" = c(0, 0, 0, 0, 0, 0, 0)) #add missing columns
-tv18 <- tv18[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")] #order columns
+tv18 <- cbind(tv18, "Nectar robber" = rep("0", length(tv18$Butterfly)), "Solitary bee" = rep("0", length(tv18$Butterfly))) #add missing columns
+tv18 <- tv18[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Small insect", "Solitary bee", "Wasp")] #order columns
 #add year
-tv18 <- cbind(tv18, "Year" = c(2018, 2018, 2018, 2018, 2018, 2018, 2018))
+tv18 <- cbind(tv18, "Year" = rep("2018", length(tv18$Butterfly)))
 #add drought
-tv18 <- cbind(tv18, "Drought" = c("Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought"))
+tv18 <- cbind(tv18, "Drought" = rep("Drought", length(tv18$Butterfly)))
+tv18 <- tv18[, -6] #delete
+tv18 <- tv18[-2, ] #delete
 ```
 
 
@@ -185,11 +185,13 @@ The next step is to load all years together onto the same dataframe. The data is
 
 ```{r create total df}
 
-# combine data
+#combine data
 all.years <- rbind(tv97, tv98, tv01, tv12, tv18)
-# remove drought column making new dataframe
-all.tv <- all.years[, -c(10, 11)]
-# create value with drought information
+#remove drought column making new dataframe
+all.tv <- all.years[, -c(8, 9)]
+#make dataframe numeric
+all.tv[] <- lapply(all.tv, as.numeric)
+#create value with drought information
 Drought <- c(all.years$Drought)
 ```
 
@@ -211,7 +213,6 @@ Analyzing code outputs:
 ```{r analyze output} 
 #call function output
 nmds
-
 ```
 
 This gives us lots of information. We can see the transformations used on the data (wisconsin(sqrt)), the disntance measure used (horn), number of dimensions (2), as well as other outputs. The output is automatically rotated so that axis 1 has larger explanitory power. Goodness of fit is given with stress. Here, stress = 0.18 indicating that the output is a fair match for this dataset. 
@@ -228,14 +229,12 @@ nmds$points
 These specific outputs can help us examine the ordination when plotted. For plotting variables are grouped by drought and non-drought, visualized with the colored polygons. The polygons represent (WHAT EXACTLY??). 
 
 ```{r plotting}
-#plot(nmds, type = "t") 
-  #ordiellipse(nmds, Drought, col=1:4)
 
 #plot NMDS
 ordiplot(nmds,type="n") + # no points 
   theme_bw()
-  orditorp(nmds,display="species",col="black",air=0.01, cex = .8) #add speices
-  orditorp(nmds,display="sites", col=c(rep("turquoise4", 9), rep("firebrick", 33)), cex=1, air=0.01) #add sites
+  orditorp(nmds,display="species",col="black",air=0.01, cex = .6) #add speices
+  orditorp(nmds,display="sites", col=c(rep("turquoise4", 9), rep("firebrick", 33)), cex=.8, air=0.01) #add sites
   ordiellipse(nmds, Drought, draw = "polygon", col=c("mediumturquoise", "indianred1"), kind = "sd", alpha = c(50, 50)) #add overlap circles 
 
 ```
@@ -243,10 +242,11 @@ ordiplot(nmds,type="n") + # no points
 
 This visualization g ives several important pieces of information. Green/blue specifies non-drought and red is Drought for both the circles and the sites. We see that the two areas show some overlap intidating partial similarities in composition. 
 
-TBD THINGS
+We can also fit our environmental variable, drought, onto the ordination. This visualizes how drought is impacting the spread of sites and species. It will also give us what percent of the variation can be explained by drough categorization. 
+
 ```{r environment}
-#data.envfit <- envfit(nmds,Drought)
-#plot(data.envfit)
-#data.envfit
+data.envfit <- envfit(nmds,Drought, lwd = 2)
+plot(data.envfit, col = "black", cex = .5)
+data.envfit
 ```
 
