@@ -10,6 +10,13 @@ This set of analyses is to look at differences in community composition between 
 
 
 ```{r setup, include=FALSE}
+#clear environment
+rm(list = ls())
+```
+
+
+```{r packages, include=FALSE}
+
 #load packages
 library(vegan)
 library(dplyr)
@@ -18,9 +25,7 @@ library(reshape2)
 ```
 
 
-```{r setup, include=FALSE}
-rm(list = ls())
-setwd("/Users/kelly/OneDrive/Desktop/Kelly/Abundance/Ipo")
+```{r data inport}
 
 #inport data
 ipo1997 <- read.csv("data_1997.csv") #1997
@@ -30,145 +35,167 @@ ipo2012 <- read.csv("data_2012.csv") #2012
 ipo2018 <- read.csv("data_2018.csv") #2018
 ```
 
-To complete Adonis, the data from all years must be together on the same matrix. This requires loading the correct data and formatting it the same. In particular, the visitor column must be in the same order. 
 
-```{r}
+1997: 
+
+```{r 1997 formating}
+
 ##1997
+
 #treat year as factor
 ipo1997$Year <- as.factor(ipo1997$Year)
-#create dataframe with site, visitor, and total visits
-ipo1997 <- cbind.data.frame(mdtsite = ipo1997$Site, mdtvisitor = ipo1997$Visitor, total.vis = ipo1997$Total.Visits)
+#create dataframe with site, visitor, and total visits (removing extra information)
+df97 <- cbind.data.frame(mdtsite = ipo1997$Site, mdtvisitor = ipo1997$Visitor, total.vis = ipo1997$Total.Visits)
 #organize data by site then visitor
-data_tvis_1997 <- dcast(ipo1997, mdtsite ~ mdtvisitor, sum)
+tv97 <- dcast(df97, mdtsite ~ mdtvisitor, sum)
 #delete site column
-colnames(data_tvis_1997)[1] <- "1" #rename
-data_tvis_1997 <- data_tvis_1997[, -1] #delete
-#rename columns
-row.names(data_tvis_1997) <- c("P", "T", "V")
-#add missing columns
-data_tvis_1997 <- cbind(data_tvis_1997, "Other fly" = c(0, 0, 0), "Nectar robber" = c(0, 0, 0), "Small insect" = c(0, 0, 0), "Wasp" = c(0, 0, 0))
-#order columns
-data_tvis_1997 <- data_tvis_1997[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")]
-#add year
-data_tvis_1997 <- cbind(data_tvis_1997, "Year" = c(1997, 1997, 1997))
-#add drought
-data_tvis_1997 <- cbind(data_tvis_1997, "Drought" = c("Non-drought", "Non-drought", "Non-drought"))
+colnames(tv97)[1] <- "1" #rename
+tv97 <- tv97[, -1] #delete
+#rename rows as sites
+row.names(tv97) <- c("P97", "T97", "V97")
+#Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
+tv97 <- cbind(tv97, "Other fly" = c(0, 0, 0), "Wasp" = c(0, 0, 0)) #add missing columns
+tv97 <- tv97[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Solitary bee", "Wasp")] #order columns alphabetically
+#add year column
+tv97 <- cbind(tv97, "Year" = rep("1997", length(tv97$Butterfly)))
+#add drought column
+tv97 <- cbind(tv97, "Drought" = rep("Non-drought", length(tv97$Butterfly)))
+```
+
+1998: 
+
+```{r 1998 formatting}
 
 ##1998
+
 #treat year as factor
 ipo1998$Year <- as.factor(ipo1998$Year)
 #create dataframe with site, visitor, and total visits
-ipo1998 <- cbind.data.frame(mdtsite = ipo1998$Site, mdtvisitor = ipo1998$Visitor, total.vis = ipo1998$Total.Visits)
+df98 <- cbind.data.frame(mdtsite = ipo1998$Site, mdtvisitor = ipo1998$Visitor, total.vis = ipo1998$Total.Visits)
 #organize data by site then visitor
-data_tvis_1998 <- dcast(ipo1998, mdtsite ~ mdtvisitor, sum)
+tv98 <- dcast(df98, mdtsite ~ mdtvisitor, sum)
 #delete site column
-colnames(data_tvis_1998)[1] <- "1" #rename
-data_tvis_1998 <- data_tvis_1998[, -1] #delete
-#rename columns
-row.names(data_tvis_1998) <- c("P", "T", "V")
-#add missing columns
-data_tvis_1998 <- cbind(data_tvis_1998, "Butterfly" = c(0, 0, 0), "Nectar robber" = c(0, 0, 0), "Small insect" = c(0, 0, 0), "Wasp" = c(0, 0, 0))
-#order columns
-data_tvis_1998 <- data_tvis_1998[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")]
+colnames(tv98)[1] <- "1" #rename
+tv98 <- tv98[, -1] #delete
+#rename rows as sites
+row.names(tv98) <- c("P98", "T98", "V98")
+#Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
+tv98 <- cbind(tv98, "Butterfly" = c(0, 0, 0), "Wasp" = c(0, 0, 0)) #add missing columns
+tv98 <- tv98[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Solitary bee", "Wasp")] #order columns alphabetically
 #add year
-data_tvis_1998 <- cbind(data_tvis_1998, "Year" = c(1998, 1998, 1998))
+tv98 <- cbind(tv98, "Year" = rep("1998", length(tv98$Butterfly)))
 #add drought
-data_tvis_1998 <- cbind(data_tvis_1998, "Drought" = c("Non-drought", "Non-drought", "Non-drought"))
+tv98 <- cbind(tv98, "Drought" = rep("Non-drought", length(tv98$Butterfly)))
+```
+
+2001:
+
+```{r 2001 formatting}
 
 ##2001
+
 #treat year as factor
 ipo2001$Year <- as.factor(ipo2001$Year)
 #create dataframe with site, visitor, and total visits
-ipo2001 <- cbind.data.frame(mdtsite = ipo2001$Site, mdtvisitor = ipo2001$Visitor, total.vis = ipo2001$Total.Visits)
+df01 <- cbind.data.frame(mdtsite = ipo2001$Site, mdtvisitor = ipo2001$Visitor, total.vis = ipo2001$Total.Visits)
 #organize data by site then visitor
-data_tvis_2001 <- dcast(ipo2001, mdtsite ~ mdtvisitor, sum)
+tv01 <- dcast(df01, mdtsite ~ mdtvisitor, sum)
 #delete site column
-colnames(data_tvis_2001)[1] <- "1" #rename
-data_tvis_2001 <- data_tvis_2001[, -1] #delete
-#rename columns
-row.names(data_tvis_2001) <- c("P", "T", "V")
-#removes Gnat  andda
-data_tvis_2001 <- data_tvis_2001[ ,-c(2, 3)] 
-#add missing columns
-data_tvis_2001 <- cbind(data_tvis_2001, "Nectar robber" = c(0, 0, 0), "Small insect" = c(0, 0, 0), "Butterfly" = c(0, 0, 0))
-#order columns
-data_tvis_2001 <- data_tvis_2001[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")]
+colnames(tv01)[1] <- "1" #rename
+tv01 <- tv01[, -1] #delete
+#rename rows as sites
+row.names(tv01) <- c("P01", "T01", "V01")
+#removes Gnat column (not a comparable observation type)
+tv01 <- tv01[ ,-c(2, 3)] 
+#Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
+tv01 <- cbind(tv01, "Butterfly" = c(0, 0, 0)) #add missing columns
+tv01 <- tv01[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Solitary bee", "Wasp")] #order columns
 #add year
-data_tvis_2001 <- cbind(data_tvis_2001, "Year" = c(2001, 2001, 2001))
+tv01 <- cbind(tv01, "Year" = rep("2001", length(tv01$Butterfly)))
 #add drought
-data_tvis_2001 <- cbind(data_tvis_2001, "Drought" = c("Non-drought", "Non-drought", "Non-drought"))
+tv01 <- cbind(tv01, "Drought" = rep("Non-drought", length(tv01$Butterfly)))
+```
+
+2012:
+
+```{r 2012 formatting}
 
 ##2012
+
 #treat year as factor
 ipo2012$Year <- as.factor(ipo2012$Year)
-#treat NAs as 1
-ipo2012[is.na(ipo2012)] <- 1
 #create dataframe with site, visitor, and total visits
-ipo2012 <- cbind.data.frame(mdtsite = ipo2012$Site, mdtvisitor = ipo2012$Visitor, total.vis = ipo2012$Total.Visits)
+df12 <- cbind.data.frame(mdtsite = ipo2012$Site, mdtvisitor = ipo2012$Visitor, total.vis = ipo2012$Total.Visits)
 #organize data by site then visitor
-data_tvis_2012 <- dcast(ipo2012, mdtsite ~ mdtvisitor, sum)
+tv12 <- dcast(df12, mdtsite ~ mdtvisitor, sum)
 #delete site column
-colnames(data_tvis_2012)[1] <- "1" #rename
-data_tvis_2012 <- data_tvis_2012[, -1] #delete
-#rename columns
-row.names(data_tvis_2012) <- c("Avery Picnic Slope", "Avery Picnic Upper", "Back of Baldy Bend", "Baldy Lunch", "Bellview Bench", "Bellview View", "billy's Hilly Lower", "billy's Hilly Upper", "Emerald Lake Lower", "Emerald Lake Upper", "End of Gothic Hill", "Kebler Pass", "Long Lake Parking Lot 1", "Long Lake Parking Lot 2", "Long Lake Parking Lot 3", "Long Lake Parking Lot 4", "Max Field Meadow Lower", "Max Field Meadow Upper", "Ol' Dusty Road", "Rosy Point Lower", "Rosy Point Upper", "Schofield/Vera Falls", "Slate River 2", "Up on dat hill", "Vera Falls", "Vera Falls 2")
+colnames(tv12)[1] <- "1" #rename
+tv12 <- tv12[, -1] #delete
+#rename rows as sites
+row.names(tv12) <- c("APS", "APU", "BBB", "BL", "BB", "BV12", "bHL", "bHU", "ELL", "ELU", "EGH", "KP", "LLP1", "LLP2", "LLP3", "LLP4", "MFML", "MFMU", "ODR", "RPL", "RPU", "SVF", "SR", "UdH", "VF12", "VF212")
 #removes Gnat column
-data_tvis_2012 <- data_tvis_2012[,-c(3)]
-#add missing columns
-data_tvis_2012 <- cbind(data_tvis_2012, "Nectar robber" = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-#order columns
-data_tvis_2012 <- data_tvis_2012[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")]
+tv12 <- tv12[,-c(3)]
+#Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
+tv12 <- cbind(tv12, "Nectar robber" = rep("0", length(tv12$Butterfly))) #add missing columns
+tv12 <- tv12[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Small insect", "Solitary bee", "Wasp")] #order columns
 #add year
-data_tvis_2012 <- cbind(data_tvis_2012, "Year" = c(2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2012))
+tv12 <- cbind(tv12, "Year" = rep("2012", length(tv12$Butterfly)))
 #add drought
-data_tvis_2012 <- cbind(data_tvis_2012, "Drought" = c("Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought"))
+tv12 <- cbind(tv12, "Drought" = rep("Drought", length(tv12$Butterfly)))
+tv12 <- tv12[, -6] #delete Small Insect column
+
+```
+
+2018: 
+
+```{r 2018 formatting}
 
 ##2018
+
 #treat year as factor
 ipo2018$Year <- as.factor(ipo2018$Year)
 #create dataframe with site, visitor, and total visits
-ipo2018 <- cbind.data.frame(mdtsite = ipo2018$Site, mdtvisitor = ipo2018$Visitor, total.vis = ipo2018$Total.Visits)
+df18 <- cbind.data.frame(mdtsite = ipo2018$Site, mdtvisitor = ipo2018$Visitor, total.vis = ipo2018$Total.Visits)
 #organize data by site then visitor
-data_tvis_2018 <- dcast(ipo2018, mdtsite ~ mdtvisitor, sum)
+tv18 <- dcast(df18, mdtsite ~ mdtvisitor, sum)
 #delete site column
-colnames(data_tvis_2018)[1] <- "1" #rename
-data_tvis_2018 <- data_tvis_2018[, -1] #delete
-#rename columns
-row.names(data_tvis_2018) <- c("Avery Slope", "Behind Rustler's Gultch", "Bellview Bench Park", "Bellview View", "East River Overlook", "Rosy Point", "Vera Falls")
-#add missing columns
-data_tvis_2018 <- cbind(data_tvis_2018, "Nectar robber" = c(0, 0, 0, 0, 0, 0, 0), "Solitary bee" = c(0, 0, 0, 0, 0, 0, 0))
-#order columns
-data_tvis_2018 <- data_tvis_2018[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Nectar robber", "Other fly", "Small insect", "Solitary bee", "Wasp")]
+colnames(tv18)[1] <- "1" #rename
+tv18 <- tv18[, -1] #delete
+#rename rows as sites
+row.names(tv18) <- c("AS", "BRG", "BBP", "BV", "ERO", "RP", "VF18")
+#Not every type of visitor was observed, and these do not have columns. Columns for missing visitors need to be added so that the years can be combined. 
+tv18 <- cbind(tv18, "Nectar robber" = rep("0", length(tv18$Butterfly)), "Solitary bee" = rep("0", length(tv18$Butterfly))) #add missing columns
+tv18 <- tv18[ , c("Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Small insect", "Solitary bee", "Wasp")] #order columns
 #add year
-data_tvis_2018 <- cbind(data_tvis_2018, "Year" = c(2018, 2018, 2018, 2018, 2018, 2018, 2018))
+tv18 <- cbind(tv18, "Year" = rep("2018", length(tv18$Butterfly)))
 #add drought
-data_tvis_2018 <- cbind(data_tvis_2018, "Drought" = c("Drought", "Drought", "Drought", "Drought", "Drought", "Drought", "Drought"))
+tv18 <- cbind(tv18, "Drought" = rep("Drought", length(tv18$Butterfly)))
+tv18 <- tv18[, -6] #delete
+tv18 <- tv18[-2, ] #delete
 ```
 
-The next step is to load all years together onto the same dataframe. This dataframe holds visitor data by site. 
+The next step is to load all years together onto the same dataframe. This dataframe holds visitor data by site.
 
 ```{r}
 #combine data
-all.years <- rbind(data_tvis_1997, data_tvis_1998, data_tvis_2001, data_tvis_2012, data_tvis_2018)
+all <- rbind(tv97, tv98, tv01, tv12, tv18)
+#remove descriptive columns
+all.years <- all[,-c(8, 9)]
+#make all column numeric
+all.years[] <- lapply(all.years, as.numeric)
+#transform into matrix
+all.years <- as.matrix(all.years)
 ```
 
 From my understanding of Adonis, a separate dataframe is required for the other data. At the moment, this includes Year and Drought information. 
 
 ```{r}
-#create dataframe
-all.des <- all.years[,-c(1:9)]
-
+#create descriptive dataframe
+all.des <- as.data.frame(all[,-c(1:7)])
 #add site information
-all.des <- cbind(all.des, c("P1", "T1", "V1", "P2", "T2", "V2", "P3", "T3", "V3", "APS", "APU", "Back of Baldy Bend", "Baldy Lunch", "Bellview Bench", "Bellview View", "billy's Hilly Lower", "billy's Hilly Upper", "Emerald Lake Lower", "Emerald Lake Upper", "End of Gothic Hill", "Kebler Pass", "Long Lake Parking Lot 1", "Long Lake Parking Lot 2", "Long Lake Parking Lot 3", "Long Lake Parking Lot 4", "Max Field Meadow Lower", "Max Field Meadow Upper", "Ol' Dusty Road", "Rosy Point Lower", "Rosy Point Upper", "Schofield/Vera Falls", "Slate River 2", "Up on dat hill", "Vera Falls", "Vera Falls 2", "Avery Slope", "Behind Rustler's Gultch", "Bellview Bench Park", "Bellview View2", "East River Overlook", "Rosy Point", "Vera Falls2"))
+all.des <- cbind(all.des, c("P1", "T1", "V1", "P2", "T2", "V2", "P3", "T3", "V3", "APS", "APU", "Back of Baldy Bend", "Baldy Lunch", "Bellview Bench", "Bellview View", "billy's Hilly Lower", "billy's Hilly Upper", "Emerald Lake Lower", "Emerald Lake Upper", "End of Gothic Hill", "Kebler Pass", "Long Lake Parking Lot 1", "Long Lake Parking Lot 2", "Long Lake Parking Lot 3", "Long Lake Parking Lot 4", "Max Field Meadow Lower", "Max Field Meadow Upper", "Ol' Dusty Road", "Rosy Point Lower", "Rosy Point Upper", "Schofield/Vera Falls", "Slate River 2", "Up on dat hill", "Vera Falls", "Vera Falls 2", "Avery Slope", "Bellview Bench Park", "Bellview View2", "East River Overlook", "Rosy Point", "Vera Falls2"))
 #name site column
 colnames(all.des)[3] <- "Site"
-```
-
-Lastly, the all.years dataframe should be formated as a matrix. The Drought and Year columns should be subtracted
-
-```{r}
-all.years <- all.years[,-c(5, 10, 11)]
-all.years <- as.matrix(all.years)
 ```
 
 Now that the data formatting is complete I can run the actual analysis. Here we are using Morisita-Horn.
@@ -177,25 +204,8 @@ Now that the data formatting is complete I can run the actual analysis. Here we 
 beta <- vegdist(all.years, method = "horn")
 ```
 
-There are two different tests I'm running here, differences in Drought and differences in Year. 
-```{r}
-adonis(beta ~ Year, all.des, strata = all.des$Drought, perm = 999)
-
-adonis(beta ~ Drought, all.des, strata = all.des$Year, perm = 999)
-```
-
-We have results! The problem is that I'm a bit confused about by we're getting here. For the second test, testing differences in drought stratifying by years, we obtain a p-value of 1, which is not correct. 
-
-However, if we do not stratify by year...
 
 ```{r}
 adonis(beta ~ Drought, all.des, perm = 999)
-```
-
-Then this problem doesn't occur.
-
-
-```{r}
-adonis(beta ~ Drought, alld, strata = alld$Site, perm = 999)
 ```
 
