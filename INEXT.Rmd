@@ -1,5 +1,5 @@
 ---
-title: "iNEXT analysis"
+title: "iNEXT analysis - visit abundance"
 output:
   html_document:
     df_print: paged
@@ -9,18 +9,28 @@ editor_options:
 
 Here our goal is to analyse how drought impacts niche breadth changes though changes in species diversity. For this we will be using iNEXT. This package provides simple functions to compare and plot sample-size and coverage-based rarefaction and extrapolation of species diversity using individual based (abundance) data or sampling unit based (incident) data. Its important to use iNEXT as it uses rarefaction and takes into acount differences in sampling effort (of which there are many).However, due to differences in sampling effort between years that are difficult  to account for, we will be only preforming individual-based rarefaction for my Honors Thesis. Fortunatly, individual-based rarefaction tells what we want to know. 
 
+The first half of the code looks at total visi abundance, while the second half addressed visitor abundance. 
+
+
 ### Code Overview
 
 1. Package and Data Import
-2. Data Formatting
+2. Data Formatting - Visit Abundance
 - Individual Years
 - Dataframe with all years
 - Drought vs. Non-drought dataframe
-3. iNEXT analysis
+3. iNEXT analysis - Visit Abundance 
 - all years
 - Separating years by hill number
-- 
-Drought vs. Non-drought separated by hill number
+- Drought vs. Non-drought separated by hill number
+4. Data Formatting - Visitor Abundance
+- Individual Years
+- Dataframe with all years
+- Drought vs. Non-drought dataframe
+5. iNEXT analysis - Visitor Abundance 
+- all years
+- Separating years by hill number
+- Drought vs. Non-drought separated by hill number
 
 iNEXT uses a particular data format for analysis. Visitation for each year is made into a vectar of total species abundance. The vector must be in order from low to high and have a number for each visitor catagory (9 total numbers). The first part of this code will be to make that format happen. 
 
@@ -54,7 +64,7 @@ ipo2018 <- read.csv("data_2018.csv") #2018
 ```
 
 
-### Data Formatting
+### Data Formatting - Visit Abundance
 
 #### Individual Years
 
@@ -86,9 +96,8 @@ tv97 <- t(tv97)
 totals97 <- as.data.frame(rowSums(tv97))
 #add 0s until totals97 has 9 rows total
 totals97 <- rbind(totals97, list(0)) #wasp
-totals97 <- rbind(totals97, list(0)) #nectar robber
 totals97 <- rbind(totals97, list(0)) #other fly
-totals97 <- rbind(totals97, list(0)) #small insect
+
 #sort in decreasing order
 totals97 <- sort(totals97$`rowSums(tv97)`, decreasing=TRUE)
 ```
@@ -120,9 +129,8 @@ tv98 <- t(tv98)
 totals98 <- as.data.frame(rowSums(tv98))
 #add 0s until totals97 has 9 rows like the others 
 totals98 <- rbind(totals98, list(0)) #wasp
-totals98 <- rbind(totals98, list(0)) #nectar robber
 totals98 <- rbind(totals98, list(0)) #butterfly
-totals98 <- rbind(totals98, list(0)) #small insect
+
 #sort in decreasing order
 totals98 <- sort(totals98$`rowSums(tv98)`, decreasing=TRUE)
 
@@ -155,9 +163,8 @@ tv01 <- tv01[-c(2),] #removes Hawkmoth row
 #sum row totals in new dataframe
 totals01 <- as.data.frame(rowSums(tv01))
 #add 0s until totals01 has 9 rows like the others 
-totals01 <- rbind(totals01, list(0)) #nectar robber
 totals01 <- rbind(totals01, list(0)) #butterfly
-totals01 <- rbind(totals01, list(0)) #small insect
+
 #sort in decreasing order
 totals01 <- sort(totals01$`rowSums(tv01)`, decreasing=TRUE)
 
@@ -183,15 +190,16 @@ row.names(tv12) <- c("Avery Picnic Slope", "Avery Picnic Upper", "Back of Baldy 
 #delete first column where sites were previously 
 colnames(tv12)[1] <- "1" #rename
 tv12 <- tv12[, -1] #delete
+
 #transpose data
 tv12 <- t(tv12) 
 tv12 <- tv12[-c(3),] #removes Gnat column
+tv12 <- tv12[-c(7),] #removes Small insect column
 
 # create vector
 #sum row totals in new dataframe
 totals12 <- as.data.frame(rowSums(tv12))
-#add 0s until totals12 has 9 rows like the others
-totals12 <- rbind(totals12, list(0)) #nectar robber
+
 #sort in decreasing order
 totals12 <- sort(totals12$`rowSums(tv12)`, decreasing=TRUE)
 
@@ -217,27 +225,29 @@ colnames(tv18)[1] <- "1" #rename
 tv18 <- tv18[, -1] #delete
 #transpose data
 tv18 <- t(tv18) 
+tv18 <- tv18[-c(6),] #removes Small insect column
 
 # create vector
 #sum row totals in new dataframe
 totals18 <- as.data.frame(rowSums(tv18))
 #add 0s until totals18 has 9 rows like the others
 totals18 <- rbind(totals18, list(0)) #solitary bee
-totals18 <- rbind(totals18, list(0)) #Nectar robber
+
 #sort in decreasing order
 totals18 <- sort(totals18$`rowSums(tv18)`, decreasing=TRUE)
 
 ```
 
 #### Dataframe with all years
+
 Now that individual dataframes are created for each year, its necessary to combine them into one dataframe.
 
 ```{r total visitation}
+
 #create total visitation dataframe
 tv <- cbind(totals97, totals98, totals01, totals12, totals18)
 #rename columns by year
 colnames(tv) <- c("1997", "1998", "2001", "2012", "2018")
-
 ```
 
 #### Drought vs. Non-drought dataframe
@@ -263,7 +273,7 @@ nondrought <- as.data.frame(nondrought)
 two <- cbind(drought, nondrought)
 ```
 
-### iNEXT analysis 
+### iNEXT analysis - Visit Abundance 
 
 Next is the actual iNEXT analysis. We have decided to use only hill numbers 0 (species richness) and 1 (shannon's diversity). 
 
@@ -277,7 +287,8 @@ out <- iNEXT(tv, q=c(0, 1), datatype="abundance", endpoint=NULL)
 
 ```
 
-This first plot gives us `q=0` and `q=1` for year each. Each is is on a separate graphs. 
+This first plot gives us `q=0` and `q=1` for year each. Each is is on a separate graphs. Note: This is not one of the final figures used in our manuscript.
+
 ```{r all graphing}
 # R/E curves, separating by "site""
 allplot <- ggiNEXT(out, type=1, facet.var="site") + 
@@ -314,24 +325,25 @@ d2 <- iNEXT(tv, q=c(1), datatype="abundance", endpoint=NULL)
 #plotting species richness 
 g1 <- ggiNEXT(d1, type=1) + 
   xlim(0,350) +
-  ylim(0, 8.5) +
+  ylim(0, 7.5) +
   theme_bw() +
   scale_colour_manual(values=c("mediumturquoise", "mediumturquoise", "mediumturquoise", "indianred1", "indianred1")) +
   scale_fill_manual(values=c("turquoise3", "turquoise3", "turquoise3", "indianred1", "indianred1")) +
   scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
-  labs(x = "number of individuals", title = "richness") +
+  labs(x = "number of individual visits", title = "richness", y = "visitor category diversity") +
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) 
   
 #plotting shannons diversity
 g2 <- ggiNEXT(d2, type=1) + 
   xlim(0,350) +
-  ylim(0, 8.5) +
+  ylim(0, 7.5) +
   theme_bw() +
   scale_colour_manual(values=c("mediumturquoise", "mediumturquoise", "mediumturquoise", "indianred1", "indianred1")) +
   scale_fill_manual(values=c("turquoise3", "turquoise3", "turquoise3", "indianred1", "indianred1")) +
   scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
-  labs(x = "number of individuals", title = "Shannon") +
+  labs(x = "number of individual visits", title = "Shannon", y = "visitor category diversity") +
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) 
+
   
 #plot both together
 grid.arrange(g1, g2, ncol = 2)
@@ -339,13 +351,15 @@ grid.arrange(g1, g2, ncol = 2)
 
 Summary: These figures show higher diversity in the years 2018 and 2012. Utlizing a richness index (q=0), the three non-drought years (1997, 1998, 2001) show overlap, with slight overlap with 2018. Utlizing the Shannon's index (q=1), both 2012 and 2018 show higher diversity than the non-drought years.
 
+Note: The error given describes 2012, which is cut off on the figure before observed visits are completed. Since it platues on the graphs this is not a problem. 
+
 Now that this is complete we will run an analysis with only two groups, drought and non-drought. This gets at our overall question in species richness difference between the two. Again, we expect higher species richness in drought years than non-drought years, indicating broader niche breadth. 
 
 #### Drought vs. Non-drought
 
 Now for the iNEXT analysis of drought vs. nondrought.
 
-This first graph will show the rarefaction for each Drought and Non-drought separately 
+This first graph will show the rarefaction for each Drought and Non-drought separately. Note: This figure is not included in our maniscript. 
 
 ```{r analyze drought and nondrought}
 #iNEXT
@@ -362,6 +376,8 @@ print(final)
 
 Again, while this graph is important, it is more informative to look at the data separtated by hill numbers. 
 
+Note: Error is again describing the fact that all observed visits are not covered by the graph. 
+
 #### Drought vs. Non-drought separated by hill number
 
 ```{r analyze by hill number}
@@ -373,10 +389,10 @@ i2 <- iNEXT(two, q=c(1), datatype="abundance", endpoint=NULL)
 # species richness
 order1 <- ggiNEXT(i1, type=1) + 
   xlim(0,300) +
-  ylim(0, 8) +
+  ylim(0, 7.5) +
   theme_bw() +
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) +
-  labs(x = "number of individuals") +
+  labs(x = "number of individual visits", y = "visitor category diversity") +
   labs(title = "richness")
  # scale_colour_manual(values=c("red", "blue")) 
 
@@ -386,10 +402,10 @@ gb4$data[[2]]$size <- .5
 #shannons diversity 
 order2 <- ggiNEXT(i2, type=1) + 
   xlim(0,300) +
-  ylim(0, 8) + 
+  ylim(0, 7.5) + 
   theme_bw() +
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) +
-  labs(x = "number of individuals") +
+  labs(x = "number of individual vists", y = "visitor category diversity") +
   labs(title = "Shannon")
  # scale_colour_manual(values=c("red", "blue")) 
   
@@ -404,14 +420,290 @@ grid.arrange(order1, order2, ncol = 2)
 Summary: This graph shows significant differences in diversity between drought and non-drought years using both richness (q=0) and Shannon's diversity (q=1). Greater species diversity was shown in drought years using both metrics.
 
 
+### Data Formatting - Visitor Abundance
+
+#### Individual Years
+
+Now that we have the data it needs to be formatted into the vectar format described above. An individual code chunk will be crated for each year. 
+
+1997: 
+
+```{r format 1997 visitor}
+
+##1997
+
+#format into total visitors by site
+ipo1997.vis <- cbind(ipo1997, vis = rep(1, length(ipo1997$Total.Visits)))
+#create dataframe with site, visitor, and total visitors
+df97.vis <- cbind.data.frame(mdtsite = ipo1997$Site, mdtvisitor = ipo1997$Visitor, total.vis = ipo1997.vis$vis)
+#organize data by site then visitor
+tv97.vis <- dcast(df97.vis, mdtsite ~ mdtvisitor, sum)
+#rename rows as sites
+row.names(tv97.vis) <- c("P", "T", "V")
+#delete first column where sites were previously 
+colnames(tv97.vis)[1] <- "1" #rename
+tv97.vis <- tv97.vis[, -1] #delete
+#transpose data
+tv97.vis <- t(tv97.vis) 
+
+# create vector
+#sum row totals in new dataframe
+totals97.vis <- as.data.frame(rowSums(tv97.vis))
+#add 0s until totals97 has 9 rows total
+totals97.vis <- rbind(totals97.vis, list(0)) #wasp
+
+totals97.vis <- rbind(totals97.vis, list(0)) #other fly
+
+#sort in decreasing order
+totals97.vis <- sort(totals97.vis$`rowSums(tv97.vis)`, decreasing=TRUE)
+```
+
+1998: 
+
+```{r format 1998 visitor}
+
+##1998
+
+#format into total visitors by site
+ipo1998.vis <- cbind(ipo1998, vis = rep(1, length(ipo1998$Total.Visits)))
+#create dataframe with site, visitor, and total visitors
+df98.vis <- cbind.data.frame(mdtsite = ipo1998$Site, mdtvisitor = ipo1998$Visitor, total.vis = ipo1998.vis$vis)
+#organize data by site then visitor
+tv98.vis <- dcast(df98.vis, mdtsite ~ mdtvisitor, sum)
+#rename rows as sites
+row.names(tv98.vis) <- c("P", "T", "V")
+#delete first column where sites were previously 
+colnames(tv98.vis)[1] <- "1" #rename
+tv98.vis <- tv98.vis[, -1] #delete
+#transpose data
+tv98.vis <- t(tv98.vis) 
+
+# create vector
+#sum row totals in new dataframe
+totals98.vis <- as.data.frame(rowSums(tv98.vis))
+#add 0s until totals97 has 9 rows like the others 
+totals98.vis <- rbind(totals98.vis, list(0)) #wasp
+totals98.vis <- rbind(totals98.vis, list(0)) #butterfly
+#sort in decreasing order
+totals98.vis <- sort(totals98.vis$`rowSums(tv98.vis)`, decreasing=TRUE)
+
+```
+
+2001: 
+
+```{r format 2001 visitor}
+
+##2001
+
+#format into total visitors by site
+ipo2001.vis <- cbind(ipo2001, vis = rep(1, length(ipo2001$Total.Visits)))
+#create dataframe with site, visitor, and total visitors
+df01.vis <- cbind.data.frame(mdtsite = ipo2001$Site, mdtvisitor = ipo2001$Visitor, total.vis = ipo2001.vis$vis)
+#organize data by site then visitor
+tv01.vis <- dcast(df01.vis, mdtsite ~ mdtvisitor, sum)
+#rename rows as sites
+row.names(tv01.vis) <- c("P", "T", "V")
+#delete first column where sites were previously 
+colnames(tv01.vis)[1] <- "1" #rename
+tv01.vis <- tv01.vis[, -1] #delete
+#transpose data
+tv01.vis <- t(tv01.vis) 
+tv01.vis <- tv01.vis[-c(2),] #removes Gnat row
+tv01.vis <- tv01.vis[-c(2),] #removes Hawkmoth row
+
+# create vector
+#sum row totals in new dataframe
+totals01.vis <- as.data.frame(rowSums(tv01.vis))
+#add 0s until totals01 has 9 rows like the others 
+totals01.vis <- rbind(totals01.vis, list(0)) #butterfly
+
+#sort in decreasing order
+totals01.vis <- sort(totals01.vis$`rowSums(tv01.vis)`, decreasing=TRUE)
+
+```
+
+2012:
+
+```{r format 2012 visitor}
+
+##2012
+
+#format into total vistors by site
+ipo2012.vis <- cbind(ipo2012, vis = rep(1, length(ipo2012$Total.Visits)))
+#create dataframe with site, visitor, and total visits
+df12.vis <- cbind.data.frame(mdtsite = ipo2012$Site, mdtvisitor = ipo2012$Visitor, total.vis = ipo2012.vis$vis)
+#organize data by site then visitor
+tv12.vis <- dcast(df12.vis, mdtsite ~ mdtvisitor, sum)
+#rename rows as sites
+row.names(tv12.vis) <- c("Avery Picnic Slope", "Avery Picnic Upper", "Back of Baldy Bend", "Baldy Lunch", "Bellview Bench", "Bellview View", "billy's Hilly Lower", "billy's Hilly Upper", "Emerald Lake Lower", "Emerald Lake Upper", "End of Gothic Hill", "Kebler Pass", "Long Lake Parking Lot 1", "Long Lake Parking Lot 2", "Long Lake Parking Lot 3", "Long Lake Parking Lot 4", "Max Field Meadow Lower", "Max Field Meadow Upper", "Ol' Dusty Road", "Rosy Point Lower", "Rosy Point Upper", "Schofield/Vera Falls", "Slate River 2", "Up on dat hill", "Vera Falls", "Vera Falls 2")
+#delete first column where sites were previously 
+colnames(tv12.vis)[1] <- "1" #rename
+tv12.vis <- tv12.vis[, -1] #delete
+
+#transpose data
+tv12.vis <- t(tv12.vis) 
+tv12.vis <- tv12.vis[-c(3),] #removes Gnat column
+tv12.vis <- tv12.vis[-c(7),] #removes Small insect column
+
+# create vector
+#sum row totals in new dataframe
+totals12.vis <- as.data.frame(rowSums(tv12.vis))
+
+#sort in decreasing order
+totals12.vis <- sort(totals12.vis$`rowSums(tv12.vis)`, decreasing=TRUE)
+
+```
+
+2018:
+
+```{r format 2018 visitor}
+
+##2018
+
+#format into total visitors by site
+ipo2018.vis <- cbind(ipo2018, vis = rep(1, length(ipo2018$Total.Visits)))
+#create dataframe with site, visitor, and total visitors
+df18.vis <- cbind.data.frame(mdtsite = ipo2018$Site, mdtvisitor = ipo2018$Visitor, total.vis = ipo2018.vis$vis)
+#organize data by site then visitor
+tv18.vis <- dcast(df18.vis, mdtsite ~ mdtvisitor, sum)
+#rename rows as sites
+row.names(tv18.vis) <- c("Avery Slope", "Behind Rustler's Gultch", "Bellview Bench Park", "Bellview View", "East River Overlook", "Rosy Point", "Vera Falls")
+#delete first column where sites were previously 
+colnames(tv18.vis)[1] <- "1" #rename
+tv18.vis <- tv18.vis[, -1] #delete
+#transpose data
+tv18.vis <- t(tv18.vis) 
+tv18.vis <- tv18.vis[-c(6),] #removes Small insect column
+
+# create vector
+#sum row totals in new dataframe
+totals18.vis <- as.data.frame(rowSums(tv18.vis))
+#add 0s until totals18 has 9 rows like the others
+totals18.vis <- rbind(totals18.vis, list(0)) #solitary bee
+
+#sort in decreasing order
+totals18.vis <- sort(totals18.vis$`rowSums(tv18.vis)`, decreasing=TRUE)
+
+```
+
+#### Dataframe with all years
+Now that individual dataframes are created for each year, its necessary to combine them into one dataframe.
+
+```{r total visitors}
+#create total visitation dataframe
+tv.vis <- cbind(totals97.vis, totals98.vis, totals01.vis, totals12.vis, totals18.vis)
+#rename columns by year
+colnames(tv.vis) <- c("1997", "1998", "2001", "2012", "2018")
+
+```
+
+#### Drought vs. Non-drought dataframe
+
+Next the drought and non-drought data must be combined into a different dataframe. From the "tv" dataframe that contains all groups two new dataframes will be created that sum the drought data (2012 and 2018) and then the non-drought data (1997, 1998, 2001). 
+
+```{r drought dataframe visitors}
+tvdf.vis <- as.data.frame(tv.vis)
+
+##create drought dataframe
+#sum column totals into new dataframe
+drought.vis <- transform(tvdf.vis, drought.vis = totals12.vis + totals18.vis)
+drought.vis <- drought.vis[, -c(1:5)]
+drought.vis <- as.data.frame(drought.vis)
+
+##create nondrought dataframe
+#sum column totals into new dataframe
+nondrought.vis <- transform(tvdf.vis, nondrought.vis = totals97.vis + totals98.vis + totals01.vis)
+nondrought.vis <- nondrought.vis[, -c(1:5)]
+nondrought.vis <- as.data.frame(nondrought.vis)
+
+#combine into one dataframe
+two.vis <- cbind(drought.vis, nondrought.vis)
+```
+
+### iNEXT analysis - visit abundance
+
+Next is the actual iNEXT analysis. We have decided to use only hill numbers 0 (species richness) and 1 (shannon's diversity). For simplicity I only repeat the two figures that we use in our manuscript. 
+
+#### all years
+
+The first step in iNEXT is to run the actual analysis, which then allows us to plot. 
 
 
+```{r analyze by drought vs. nondrought visits}
+i1.vis <- iNEXT(two.vis, q=c(0), datatype="abundance", endpoint=NULL)
+i2.vis <- iNEXT(two.vis, q=c(1), datatype="abundance", endpoint=NULL)
+```
+
+```{r graphing by drought vs. nondrought visits}
+# species richness
+order1.vis <- ggiNEXT(i1.vis, type=1) + 
+  xlim(0,350) +
+  ylim(0, 7.5) +
+  theme_bw() +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) +
+  labs(x = "number of individuals", y = "visitor category diversity") +
+  labs(title = "richness")
+ # scale_colour_manual(values=c("red", "blue")) 
+
+gb4.vis <- ggplot_build(order1.vis)
+gb4.vis$data[[2]]$size <- .5
+
+#shannons diversity 
+order2.vis <- ggiNEXT(i2.vis, type=1) + 
+  xlim(0,350) +
+  ylim(0, 7.5) + 
+  theme_bw() +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) +
+  labs(x = "number of individuals", y = "visitor category diversity") +
+  labs(title = "Shannon")
+ # scale_colour_manual(values=c("red", "blue")) 
+  
+gb3.vis <- ggplot_build(order1.vis)
+gb3.vis$data[[2]]$size <- .5
+
+#graph together
+print(grid.arrange(order1.vis, order2.vis, ncol = 2))
+```
 
 
+Summary: This graph shows significant differences in diversity between drought and non-drought years using both richness (q=0) and Shannon's diversity (q=1). Greater species diversity was shown in drought years using both metrics.
 
 
+```{r analysis by diversity order visits}
+#species richness
+d1.vis <- iNEXT(tv.vis, q=c(0), datatype="abundance", endpoint=NULL)
+
+#shannons diversity 
+d2.vis <- iNEXT(tv.vis, q=c(1), datatype="abundance", endpoint=NULL)
+```
 
 
+```{r plotting by diversity order visits}
+#plotting species richness 
+g1.vis <- ggiNEXT(d1.vis, type=1) + 
+  xlim(0,350) +
+  ylim(0, 7.5) +
+  theme_bw() +
+  scale_colour_manual(values=c("mediumturquoise", "mediumturquoise", "mediumturquoise", "indianred1", "indianred1")) +
+  scale_fill_manual(values=c("turquoise3", "turquoise3", "turquoise3", "indianred1", "indianred1")) +
+  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
+  labs(x = "number of individuals", title = "richness", y = "visitor category diversity") +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) 
+  
+#plotting shannons diversity
+g2.vis <- ggiNEXT(d2.vis, type=1) + 
+  xlim(0,350) +
+  ylim(0, 7.5) +
+  theme_bw() +
+  scale_colour_manual(values=c("mediumturquoise", "mediumturquoise", "mediumturquoise", "indianred1", "indianred1")) +
+  scale_fill_manual(values=c("turquoise3", "turquoise3", "turquoise3", "indianred1", "indianred1")) +
+  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
+  labs(x = "number of individuals", title = "Shannon", y = "visitor category diversity") +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) 
 
+  
+#plot both together
+grid.arrange(g1.vis, g2.vis, ncol = 2)
+```
 
 
