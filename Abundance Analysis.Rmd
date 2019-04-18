@@ -25,35 +25,16 @@ First step is to inport the data needed for this code.
 ```{r data inport}
 
 #inport data
-ipo1997 <- read.csv("data_1997.csv") #1997
-ipo1998 <- read.csv("data_1998.csv") #1998
-ipo2001 <- read.csv("data_2001.csv") #2001
-ipo2012 <- read.csv("data_2012.csv") #2012
-ipo2018 <- read.csv("data_2018.csv") #2018
+ipo1997 <- read.csv("abundance_1997.csv") #1997
+#ipo1998 <- read.csv("data_1998.csv") #1998
+ipo2001 <- read.csv("abundance_2001.csv") #2001
+#ipo2012 <- read.csv("data_2012.csv") #2012
+ipo2018 <- read.csv("abundance_2018.csv") #2018
 ```
 
-Next, we need to add a column for single visitor observations. Currently, there is not a numeric column for an individual visitor, only for its visits. Therefore we will add a column with a value of 1 for each observed visitor. This needs to be done for each year. 
+Because of some technical and time issues, I ended up reformating the data in excel. This ended up saving a lot of time!
 
-```{r visit column addition}
-#add visit column 1997
-ipo1997 <- cbind(ipo1997, Visit = rep(1, length(ipo1997$Visitor)))
-
-#add visit column 1998
-ipo1998 <- cbind(ipo1998, Visit = rep(1, length(ipo1998$Visitor)))
-
-#add visit column 2001
-ipo2001 <- cbind(ipo2001, Visit = rep(1, length(ipo2001$Visitor)))
-
-#add visit column 2012
-ipo2012 <- cbind(ipo2012, Visit = rep(1, length(ipo2012$Visitor)))
-
-#add visit column 2018
-ipo2018 <- cbind(ipo2018, Visit = rep(1, length(ipo2018$Visitor)))
-```
-
-Next we need to reformat the data from each year. Ultimately we need a dataframe setup that can be used as input for the models using fixed and random effects. 
-
-The first steps are to convert time to hours from minutes, then multiply the hours by the number of observers to get Person*hours (PH). This will be done for both the visit and visitor abundances. Then, the data will be reformatted. We will start with 1997 and work up from there.
+Now that the reformated data has been inported, I am going to add all of the years into one dataframe. 
 
 
 1997:
@@ -62,37 +43,13 @@ The first steps are to convert time to hours from minutes, then multiply the hou
 #1997
 
 #create list with time in hours
-Hours97 <- ipo1997$Time/60
+#Hours97 <- ipo1997$Time/60
 #create list with person*time
-PH97 <- Hours97*ipo1997$Observers
+#PH97 <- Hours97*ipo1997$Observers
 #create visitor abundance per person*time
-VPH97 <- ipo1997$Visit/PH97
+#VPH97 <- ipo1997$Visit/PH97
 #create visit abundance per person*time
-TVPH97 <- ipo1997$Total.Visits/PH97
+#TVPH97 <- ipo1997$Total.Visits/PH97
 
 ```
 
-Next, the 1997 data needs to be reformatted. 
-
-```{r}
-
-#create new dataframe with Year, Site, Observer #, Visitor, Visitor abundance per person*hour, and Visit abundance per person*hour
-all97 <- cbind(ipo1997[, c(1, 4, 3, 7)], VPH97, TVPH97)
-
-#reformat dataframe with breakdown of visitor category totals per site
-f97 <- dcast(all97, all97$Site ~ all97$Visitor, sum)
-f97 <- cbind(f97, "Other fly" = c(0, 0, 0), "Wasp" = c(0, 0, 0)) #add missing columns
-colnames(f97)[1] <- "Site"
-f97 <- f97[c("Site", "Butterfly", "Bumblebee", "Hoverfly", "Hummingbird", "Other fly", "Solitary bee", "Wasp")] #order columns 
-f97 <- cbind(
-  f97, 
-  Abundance = as.data.frame(rowSums(f97[, c(2:8)])), 
-  Observers = rep(1, length(f97$Site)), 
-  Year = rep(1997, length(f97$Site)), 
-  Drought = rep("Non-drought", length(f97$Site))
-)
-colnames(f97)[9] <- "Abundance"
-
-```
-
-From my current understanding, f97 has all of the information we need to run our models. 
