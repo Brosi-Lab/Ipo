@@ -5,7 +5,9 @@ date: "April 17, 2019"
 output: html_document
 ---
 
-In this code I am attempting to compare visitor and visit abundance between years. Due to numerous sampling effort differences this can be difficult. To account for this, we are converting visits into visits per person*hour (PH). After this, we will run mixed effect linear models. 
+In this code I am attempting to compare visitor and visit abundance between years. This is important because as is we are not able to look at differences in abundace due to numerous sampling effort differences. We want to compare these as it is an important aspect of how drought may impact plant-pollinator communities. 
+
+To examine abundance differences and account for sampling effort differences, we will be using a linear mixed effect model, glmmADMB adding several different fixed and random effects. 
 
 
 ```{r setup, include=FALSE}
@@ -13,43 +15,48 @@ In this code I am attempting to compare visitor and visit abundance between year
 rm(list = ls())
 ```
 
+The package that we want to use, glmmADMB, was for some reason taken down. However by running the following code it is possible to download it directly from the group that wrote it.
 
 ```{r packages, include=FALSE}
 
-#load packages
+#install glmmADMB
+install.packages("glmmADMB", 
+     repos=c("http://glmmadmb.r-forge.r-project.org/repos", 
+            getOption("repos")),
+     type="source")
 
+#load packages
+library(glmmADMB)
 ```
 
-First step is to inport the data needed for this code. 
+First step is to import the data needed for this code. I manually reformated the data in excel as it would take much less time and we are in somewhat of a time crunch. 
 
 ```{r data inport}
 
 #inport data
 ipo1997 <- read.csv("abundance_1997.csv") #1997
-#ipo1998 <- read.csv("data_1998.csv") #1998
+ipo1998 <- read.csv("abundance_1998.csv") #1998
 ipo2001 <- read.csv("abundance_2001.csv") #2001
-#ipo2012 <- read.csv("data_2012.csv") #2012
+ipo2012 <- read.csv("abundance_2012.csv") #2012
 ipo2018 <- read.csv("abundance_2018.csv") #2018
 ```
 
-Because of some technical and time issues, I ended up reformating the data in excel. This ended up saving a lot of time!
+With the data imported we need to combine all the years into one dataframe for analysis. 
 
-Now that the reformated data has been inported, I am going to add all of the years into one dataframe. 
+```{r create dataframe}
+#combine data
+all.years <- rbind(ipo1997, ipo1998, ipo2001, ipo2012, ipo2018)
+
+#rename site column
+colnames(all.years)[1] <- "Site"
+```
 
 
-1997:
 
-```{r}
-#1997
+```{r run analysis}
 
-#create list with time in hours
-#Hours97 <- ipo1997$Time/60
-#create list with person*time
-#PH97 <- Hours97*ipo1997$Observers
-#create visitor abundance per person*time
-#VPH97 <- ipo1997$Visit/PH97
-#create visit abundance per person*time
-#TVPH97 <- ipo1997$Total.Visits/PH97
+a <- glmmadmb(Visitor.Abundance ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2", zeroInflation = TRUE)
 
+summary(a)
 ```
 
