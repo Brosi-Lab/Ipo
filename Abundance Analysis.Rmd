@@ -5,31 +5,23 @@ date: "April 17, 2019"
 output: html_document
 ---
 
-In this code I am attempting to compare visitor and visit abundance between years. This is important because as is we are not able to look at differences in abundace due to numerous sampling effort differences. We want to compare these as it is an important aspect of how drought may impact plant-pollinator communities. 
+In this code I am comparing visitor abundance between years. This is important because as is we are not able to look at straight abundances between years due to numerous sampling effort differences. We want to compare these as it is an important aspect of how drought may impact plant-pollinator communities. 
 
-To examine abundance differences and account for sampling effort differences, we will be using a linear mixed effect model, glmmADMB adding several different fixed and random effects. 
+To examine abundance differences and account for sampling effort differences, we will be using a linear mixed effect model, glmmTMB adding several different fixed and random effects. 
 
-
-```{r setup, include=FALSE}
-#clear environment
-rm(list = ls())
-```
-
-The package that we want to use, glmmADMB, was for some reason taken down. However by running the following code it is possible to download it directly from the group that wrote it.
+First there are several specific packages necessary to complete the analysis.
 
 ```{r packages, include=FALSE}
 
-#install glmmADMB
-install.packages("glmmADMB", 
-     repos=c("http://glmmadmb.r-forge.r-project.org/repos", 
-            getOption("repos")),
-     type="source")
-
 #load packages
-library(glmmADMB)
+library(glmmTMB)
+library(fitdistrplus)
+library(DHARMa)
+library(ggplot2)
+
 ```
 
-First step is to import the data needed for this code. I manually reformated the data in excel as it would take much less time and we are in somewhat of a time crunch. 
+First step is to import the data needed for this code. I manually reformated the data in excel as it would take much less time and was more straightforward. These new data sheets have been uploaded separately into GitHub.
 
 ```{r data inport}
 
@@ -49,14 +41,87 @@ all.years <- rbind(ipo1997, ipo1998, ipo2001, ipo2012, ipo2018)
 
 #rename site column
 colnames(all.years)[1] <- "Site"
+
+# create new column for variable
+all.years$visithour <- all.years$Visitor.Abundance/all.years$Time
 ```
 
+The first step to examine visitor abundance between drought and non-drought years is to determine the correct distrubution for our data. It is most likely negative binomial, so we will start by checking for that. 
 
 
-```{r run analysis}
+```{r abundance distribution fit}
+#fit data distribution
+b <- fitdist(all.years$Visitor.Abundance, "nbinom")
 
-a <- glmmadmb(Visitor.Abundance ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2", zeroInflation = TRUE)
+#summarize nbinom fit
+summary(b)
 
-summary(a)
+#plot nbinom fit
+plot(b)
+```
+
+According the the plot of the distribution that data fits a negative binomial distribution. 
+
+Now we are able to run our linear mixed effects model (glmmTMB) using a negative binomial distribution (nbinom2). 
+
+```{r}
+
+model2 <- glmmTMB(Visitor.Abundance ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2")
+
+summary(model2)
+
+```
+
+DESCRIPTION
+
+```{r}
+gg <- residuals(model2)
+
+plot(gg)
+
+all.years$residuals <- gg
+
+all.years$fitted <- model2$fitted
+
+simoutput <- simulateResiduals(fittedModel = model2, n = 250)
+
+plot(simoutput)
+```
+
+DESCRIPTION
+
+```{r}
+ggplot(all.years, aes(x=Drought, y=visithour)) +
+  geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
+  geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  theme_bw() + 
+  labs(x="Drought", y="Visits per Hour")
+```
+
+DESCRIPTION
+
+```{r}
+c <- fitdist(all.years$Richness, "nbinom")
+plot(c)
+
+model3 <- glmmTMB(Richness ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2")
+summary(model3)
+
+gg2 <- residuals(model3)
+plot(gg2)
+
+
+all.years$residuals2 <- gg2
+
+all.years$fitted2 <- model3$fitted
+
+simoutput2 <- simulateResiduals(fittedModel = model3, n = 250)
+plot(simoutput2)
+
+ggplot(all.years, aes(x=Drought, y=Richness)) +
+  geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
+  geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  theme_bw() + 
+  labs(x="Drought", y="Richness")
 ```
 
