@@ -42,33 +42,31 @@ all.years <- rbind(ipo1997, ipo1998, ipo2001, ipo2012, ipo2018)
 #rename site column
 colnames(all.years)[1] <- "Site"
 
-# create new column for variable
-all.years$visithour <- all.years$Visitor.Abundance/all.years$Time
 ```
 
 The first step to examine visitor abundance between drought and non-drought years is to determine the correct distrubution for our data. It is most likely negative binomial, so we will start by checking for that. 
 
-
 ```{r abundance distribution fit}
+
 #fit data distribution
-b <- fitdist(all.years$Visitor.Abundance, "nbinom")
+distcheck <- fitdist(all.years$Visitor.Abundance, "nbinom")
 
 #summarize nbinom fit
-summary(b)
+summary(distcheck)
 
 #plot nbinom fit
-plot(b)
+plot(distcheck)
 ```
 
 According the the plot of the distribution that data fits a negative binomial distribution. 
 
-Now we are able to run our linear mixed effects model (glmmTMB) using a negative binomial distribution (nbinom2). 
+Now we are able to run our linear mixed effects model (glmmTMB) using a negative binomial distribution (nbinom2). Our responce variable is given as total visitor abundance for each inidividual site visit. Drought, observer number, and amount of time observing are fixed effects, while site nexted within year is a random effect. 
 
-```{r}
+```{r Adbunace model}
 
-model2 <- glmmTMB(Visitor.Abundance ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2")
+abundancemod <- glmmTMB(Visitor.Abundance ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2")
 
-summary(model2)
+summary(abundancemod)
 
 ```
 
@@ -86,6 +84,13 @@ all.years$fitted <- model2$fitted
 simoutput <- simulateResiduals(fittedModel = model2, n = 250)
 
 plot(simoutput)
+```
+
+DESCRIPTION
+
+```{r}
+# create new column for variable
+all.years$visithour <- all.years$Visitor.Abundance/all.years$Time
 ```
 
 DESCRIPTION
