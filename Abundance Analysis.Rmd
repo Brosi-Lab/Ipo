@@ -107,9 +107,11 @@ DESCRIPTION
 
 ```{r}
 c <- fitdist(all.years$Richness, "nbinom")
+
 plot(c)
 
 model3 <- glmmTMB(Richness ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2")
+
 summary(model3)
 
 gg2 <- residuals(model3)
