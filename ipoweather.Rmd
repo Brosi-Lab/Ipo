@@ -1,0 +1,101 @@
+---
+title: "ipoweather"
+author: "Kelly Endres"
+date: "November 20, 2019"
+output: html_document
+---
+
+In this code the goal is to determine the significance of drought over different years. We will then be able to determine which years to include as drought and which to include as non-drought in our analysis. The last column, drought, was created to group years into drought and non-drought for the NMDS analysis. I defined drought as anything with a snowfall total below 700cm, which was very low compared to average snowfall. 
+
+```{r packages, include=FALSE}
+
+#load packages
+library(vegan)
+library(dplyr)
+library(GGally)
+```
+
+Data is imported from an excel file containing visitation various weather data points from Gothic, obtained from billy barr's website. 
+
+```{r data inport}
+
+#inport data
+weatherdf<- read.csv("gothicweather.csv")
+```
+
+With the data loaded, it needs to be reformatted as a matrix. The non-numeric columns need to be removed, as they can't be used in the nmds. 
+
+```{r matrix formatting}
+
+#create matrix
+mat <- as.matrix(weatherdf)
+
+#rename rows
+row.names(mat) <- weatherdf$Winter
+
+#delete non-numeric columns
+colnames(mat)[1] <- "1"
+colnames(mat)[5] <- "5"
+colnames(mat)[6] <- "6"
+mat <- mat[, - c(1, 5, 6)]
+```
+
+The matrix needs to be formatted further to fit the form for the NMDS analysis. The drought column needs to be removed from the dataframe containing the rest of the data and put into its own value. 
+
+```{r create df}
+
+# Make dataframe
+dmat <- as.data.frame(mat) 
+
+#change columns to numeric
+dmat$Total <- as.numeric(dmat$Total)
+dmat$Apr.1 <- as.numeric(dmat$Apr.1)
+dmat$May.1 <- as.numeric(dmat$May.1)
+dmat$Water <- as.numeric(dmat$Water)
+dmat$Above.freezing <- as.numeric(dmat$Above.freezing)
+dmat$Days.covered <- as.numeric(dmat$Days.covered)
+dmat$Drought <- as.numeric(dmat$Drought)
+
+#create value with drought information
+gr <- c(dmat$Drought)
+
+#remove drought column from other data
+colnames(dmat)[7] <- "7" #rename
+dmat2 <- dmat[, -7] #remove
+```
+
+Now that the data is formatted properly analysis can begin. Again, I will be using NMDS to visualize differences between drough and non-drought years. We expect that 2012 and 2018 will be drought years. 
+
+Here I will use function metaMDS to preform the analysis. 
+
+```{r NMDS}
+
+# run a NMDS ordination
+ord <- metaMDS(dmat2)
+```
+
+Because we have a large dataset, the function automatically preforms a square root transformation using Wisconsin standardation. 
+
+We will be analysing the NMDS via plotting. 
+
+```{r plotting}
+
+plot(ord, disp="sites", type="n")
+  ordihull(ord, gr, col=c("mediumturquoise", "indianred1"), lwd=3)
+  ordiellipse(ord, gr, draw="polygon", col=c("mediumturquoise", "indianred1"), alpha = c(50, 50))
+  orditorp(ord,display="species",col="black",air=0.01, cex = .8)
+  orditorp(ord,display="sites", select = sel, col= "black", air=0.01,cex=1)
+  points(ord, display = "sites", cex = 0.5, pch = 3, col = "black")
+plot(data.envfit, col = "black", cex = .5)
+```
+
+This visualization gives several important pieces of information. Green/blue specifies Non-drought and red is Drought. We see that the two areas show no overlap, indicating that the years are different in terms of weather. 
+
+We can also fit our environmental variable, drought, onto the ordination. This visualizes how the differences in weather between years are impacted by drought. It will also give us what percent of the variation can be explained by drough categorization.
+
+```{r}
+data.envfit <- envfit(ord, gr, lwd = 2)
+plot(data.envfit, col = "black", cex = .5)
+data.envfit
+```
+
