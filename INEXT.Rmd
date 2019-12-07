@@ -333,6 +333,7 @@ g1 <- ggiNEXT(d1, type=1) +
   labs(x = "number of individual visits", title = "richness", y = "visitor category diversity") +
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) 
   
+
 #plotting shannons diversity
 g2 <- ggiNEXT(d2, type=1) + 
   xlim(0,350) +
@@ -344,7 +345,29 @@ g2 <- ggiNEXT(d2, type=1) +
   labs(x = "number of individual visits", title = "Shannon", y = "visitor category diversity") +
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) 
 
-  
+# connor plays with graphics
+g1 <- ggiNEXT(d1, type=1, grey=T) + 
+  theme_classic() + 
+  xlim(0,350) +
+  ylim(0, 7.5) +
+  scale_colour_manual(values=c("grey1", "grey1", "grey1", "grey", "grey")) +
+  scale_fill_manual(values=c("grey45", "grey45", "grey45", "grey60", "grey60")) +
+  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
+  labs(x = "number of individual visits", title = "Richness", y = "visitor category diversity") +
+  theme(axis.title = element_text(size=16), legend.position = "none", axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
+
+g2 <- ggiNEXT(d2, type=1) + 
+  xlim(0,350) +
+  ylim(0, 7.5) +
+  theme_classic()  +
+  scale_colour_manual(values=c("grey1", "grey1", "grey1", "grey", "grey")) +
+  scale_fill_manual(values=c("grey45", "grey45", "grey45", "grey60", "grey60")) +
+  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
+  labs(x = "number of individual visits", title = "Shannon", y = "visitor category diversity") +
+ theme(axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14),
+legend.position = c(0.9,0.99), legend.title=element_blank(),legend.text = element_text(size=8))
+
+
 #plot both together
 grid.arrange(g1, g2, ncol = 2)
 ```
@@ -412,8 +435,40 @@ order2 <- ggiNEXT(i2, type=1) +
 gb3 <- ggplot_build(order1)
 gb3$data[[2]]$size <- .5
 
+#connor plays with graphics
+  scale_colour_manual(values=c("grey1", "grey1", "grey1", "grey", "grey")) +
+  scale_fill_manual(values=c("grey45", "grey45", "grey45", "grey60", "grey60")) +
+  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
+  labs(x = "number of individual visits", title = "Richness", y = "visitor category diversity") +
+  theme(axis.title = element_text(size=16), legend.position = "none", axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
+  legend.position = c(0.9,0.99), legend.title=element_blank(),legend.text = element_text(size=8))
+
+
+order1 <- ggiNEXT(i1, type=1, grey=T) + 
+  xlim(0,300) +
+  ylim(0, 7.5) +
+  theme_classic() +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5), axis.title =    element_text(size=16), axis.text=element_text(size=14)) +
+  scale_colour_manual(values=c("grey1","grey")) +
+  scale_fill_manual(values=c("grey45","grey60")) +
+  labs(x = "number of individual visits", y = "visitor category diversity") 
+  # labs(title = "Richness")
+
+order2 <- ggiNEXT(i2, type=1, grey=T) + 
+  xlim(0,300) +
+  ylim(0, 7.5) + 
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5, size= 14), legend.position = "top", legend.title=element_blank(),legend.text = element_text(size=8), axis.text=element_text(size=14))  +
+   scale_colour_manual(values=c("grey1","grey")) +
+  scale_fill_manual(values=c("grey45","grey60")) +
+  labs(x = "number of individual vists", y = "visitor category diversity") 
+  # labs(title = "Shannon")
+
+
+
+
 #graph together
-grid.arrange(order1, order2, ncol = 2)
+grid.arrange(g1, g2, order1, order2, ncol = 2)
 ```
 
 
