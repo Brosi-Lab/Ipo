@@ -350,8 +350,8 @@ g1 <- ggiNEXT(d1, type=1, grey=T) +
   theme_classic() + 
   xlim(0,350) +
   ylim(0, 7.5) +
-  scale_colour_manual(values=c("grey1", "grey1", "grey1", "grey", "grey")) +
-  scale_fill_manual(values=c("grey45", "grey45", "grey45", "grey60", "grey60")) +
+  scale_colour_manual(values=c("grey", "grey", "grey", "grey1", "grey1")) +
+  scale_fill_manual(values=c("grey60", "grey60", "grey60", "grey45", "grey45")) +
   scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
   labs(x = "number of individual visits", title = "Richness", y = "visitor category diversity") +
   theme(axis.title = element_text(size=16), legend.position = "none", axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
@@ -360,16 +360,34 @@ g2 <- ggiNEXT(d2, type=1) +
   xlim(0,350) +
   ylim(0, 7.5) +
   theme_classic()  +
-  scale_colour_manual(values=c("grey1", "grey1", "grey1", "grey", "grey")) +
-  scale_fill_manual(values=c("grey45", "grey45", "grey45", "grey60", "grey60")) +
+  scale_colour_manual(values=c("grey", "grey", "grey", "grey1", "grey1")) +
+  scale_fill_manual(values=c("grey60", "grey60", "grey60", "grey45", "grey45")) +
   scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
   labs(x = "number of individual visits", title = "Shannon", y = "visitor category diversity") +
  theme(axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14),
 legend.position = c(0.9,0.99), legend.title=element_blank(),legend.text = element_text(size=8))
 
 
-#plot both together
-grid.arrange(g1, g2, ncol = 2)
+# if just richness
+
+g3 <- ggiNEXT(d1, type=1, grey=T) + 
+  theme_classic() + 
+  xlim(0,350) +
+  ylim(0, 7.5) +
+  scale_colour_manual(values=c("grey", "grey", "grey", "grey1", "grey1")) +
+  scale_fill_manual(values=c("grey60", "grey60", "grey60", "grey45", "grey45")) +
+  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
+  labs(x = "number of individual visits", title = "Richness", y = "visitor category diversity") +
+  labs(title = "a)") +
+  theme(axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.02, size= 18, face="bold"), legend.title=element_blank(),legend.text = element_text(size=8), legend.position = c(0.89,0.3)) + 
+ guides(linetype = FALSE)
+
+gb_3 <- ggplot_build(g3)
+gb_3$data[[1]]$size <- 4
+gt3 <- ggplot_gtable(gb_3)
+
+ #plot both together
+grid.arrange(g3, gt3, ncol = 2)
 ```
 
 Summary: These figures show higher diversity in the years 2018 and 2012. Utlizing a richness index (q=0), the three non-drought years (1997, 1998, 2001) show overlap, with slight overlap with 2018. Utlizing the Shannon's index (q=1), both 2012 and 2018 show higher diversity than the non-drought years.
@@ -436,29 +454,28 @@ gb3 <- ggplot_build(order1)
 gb3$data[[2]]$size <- .5
 
 #connor plays with graphics
-  scale_colour_manual(values=c("grey1", "grey1", "grey1", "grey", "grey")) +
-  scale_fill_manual(values=c("grey45", "grey45", "grey45", "grey60", "grey60")) +
-  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
-  labs(x = "number of individual visits", title = "Richness", y = "visitor category diversity") +
-  theme(axis.title = element_text(size=16), legend.position = "none", axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
-  legend.position = c(0.9,0.99), legend.title=element_blank(),legend.text = element_text(size=8))
 
 
-order1 <- ggiNEXT(i1, type=1, grey=T) + 
+ord1 <- ggiNEXT(i1, type=1, grey=T) + 
   xlim(0,300) +
   ylim(0, 7.5) +
   theme_classic() +
-  theme(legend.position = "none", plot.title = element_text(hjust = 0.5), axis.title =    element_text(size=16), axis.text=element_text(size=14)) +
+  theme(plot.title = element_text(hjust = 0.5), axis.title =    element_text(size=16), axis.text=element_text(size=14), legend.position = c(0.89,0.2), legend.title=element_blank()) + 
+ guides(linetype = FALSE) +
   scale_colour_manual(values=c("grey1","grey")) +
   scale_fill_manual(values=c("grey45","grey60")) +
   labs(x = "number of individual visits", y = "visitor category diversity") 
   # labs(title = "Richness")
 
-order2 <- ggiNEXT(i2, type=1, grey=T) + 
+gb_4 <- ggplot_build(ord1)
+gb_4$data[[1]]$size <- 4
+gt4 <- ggplot_gtable(gb_4)
+
+ord2 <- ggiNEXT(i2, type=1, grey=T) + 
   xlim(0,300) +
   ylim(0, 7.5) + 
   theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5, size= 14), legend.position = "top", legend.title=element_blank(),legend.text = element_text(size=8), axis.text=element_text(size=14))  +
+  theme(plot.title = element_text(hjust = 0.5, size= 14), legend.position = "none", legend.title=element_blank(),legend.text = element_text(size=8), axis.text=element_text(size=14), axis.title =    element_text(size=16))  +
    scale_colour_manual(values=c("grey1","grey")) +
   scale_fill_manual(values=c("grey45","grey60")) +
   labs(x = "number of individual vists", y = "visitor category diversity") 
@@ -466,9 +483,30 @@ order2 <- ggiNEXT(i2, type=1, grey=T) +
 
 
 
+# if just richness
+order1 <- ggiNEXT(i1, type=1, grey=T) + 
+  xlim(0,300) +
+  ylim(0, 7.5) +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.02, face = "bold", size= 18), axis.title = element_text(size=16), axis.text=element_text(size=14), legend.position = c(0.85,0.2), legend.title=element_blank()) + 
+ guides(linetype = FALSE) +
+  scale_colour_manual(values=c("grey1","grey")) +
+  scale_fill_manual(values=c("grey45","grey60")) +
+  labs(x = "number of individual visits", y = "visitor category diversity") +
+   labs(title = "b)")
+
+gb_4 <- ggplot_build(order1)
+gb_4$data[[1]]$size <- 4
+gt4 <- ggplot_gtable(gb_4)
+
+
 
 #graph together
-grid.arrange(g1, g2, order1, order2, ncol = 2)
+
+grid.arrange(gt3, gt4, ncol=2)
+
+
+grid.arrange(g1, g2, ord1, ord2, ncol = 2)
 ```
 
 
