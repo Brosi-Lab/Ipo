@@ -15,12 +15,19 @@ library(dplyr)
 library(GGally)
 ```
 
-Data is imported from an excel file containing visitation various weather data points from Gothic, obtained from billy barr's website. 
+Data is imported from an excel file containing various weather data points from Gothic, obtained from billy barr's website. 
 
 ```{r data inport}
 
 #inport data
 weatherdf<- read.csv("gothicweather.csv")
+
+# water is in inches so convert to cm
+weatherdf$Watercm= weatherdf$Water * 2.54
+
+# remove winters before 1994/95
+weatherdf = weatherdf[c(17:32,37:43),]
+
 ```
 
 With the data loaded, it needs to be reformatted as a matrix. The non-numeric columns need to be removed, as they can't be used in the nmds. 
