@@ -1,0 +1,50 @@
+---
+title: "Ipomopsis cleaning and data prep doc"
+output: html_notebook
+---
+
+ This Rmarkdown file is associated with Endres et al. 20xx manuscript on Ipomopsis niche breadth responses to drought perterbation. This creates the following datasets that are used in the Rmarkdown file (Endres et al. Ipomopsis data analysis) to be publically available:
+ 1. visitation by visitor category in all years. Used in glmm abundance analysis.
+ 2. 
+
+1. Visitation by visitor category in all years
+
+First step is to import the data needed for this code. I manually reformated the data in excel as it would take much less time and was more straightforward. These new data sheets have been uploaded separately into GitHub.
+
+```{r data inport}
+
+#inport data
+ipo1997 <- read.csv("abundance_1997.csv") #1997
+ipo1998 <- read.csv("abundance_1998.csv") #1998
+ipo2001 <- read.csv("abundance_2001.csv") #2001
+ipo2012 <- read.csv("abundance_2012.csv") #2012
+ipo2018 <- read.csv("abundance_2018.csv") #2018
+```
+
+With the data imported we need to combine all the years into one dataframe for analysis. 
+
+```{r create dataframe}
+#combine data
+all.years <- rbind(ipo1997, ipo1998, ipo2001, ipo2012, ipo2018)
+
+#rename site column
+colnames(all.years)[1] <- "Site"
+
+```
+
+Export data
+```{r}
+write.csv(file= "Ipomopsis visitation by visitor category all years.csv", all.years)
+```
+
+
+
+Investigating model output glmmTMB
+
+Model convergence problem; non-positive-definite Hessian matrix. See vignette('troubleshooting') 
+Following [this vignette](https://cran.r-project.org/web/packages/glmmTMB/vignettes/troubleshooting.html)
+
+```{r}
+fixef(abundancemod)
+```
+
