@@ -99,8 +99,19 @@ DESCRIPTION
 ggplot(all.years, aes(x=Drought, y=visithour)) +
   geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
   geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
-  theme_bw() + 
-  labs(x="Drought", y="Visits per Hour")
+  theme_classic() + 
+  labs(x="Drought", y="Visits per Hour") +
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
+
+
+ggplot(all.years, aes(x=Drought, y=Visit.Abundance)) +
+  geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
+  geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  theme_classic() + 
+  labs(y="Visitor Abundance") +
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
+  
+
 ```
 
 DESCRIPTION
