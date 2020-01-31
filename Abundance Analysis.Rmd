@@ -18,6 +18,7 @@ library(glmmTMB)
 library(fitdistrplus)
 library(DHARMa)
 library(ggplot2)
+library(tidyverse)
 
 ```
 
@@ -31,6 +32,10 @@ ipo1998 <- read.csv("abundance_1998.csv") #1998
 ipo2001 <- read.csv("abundance_2001.csv") #2001
 ipo2012 <- read.csv("abundance_2012.csv") #2012
 ipo2018 <- read.csv("abundance_2018.csv") #2018
+
+#2012 was actually entered as 2001. Overwrote this
+ipo2012$Year = 2012
+
 ```
 
 With the data imported we need to combine all the years into one dataframe for analysis. 
@@ -42,6 +47,7 @@ all.years <- rbind(ipo1997, ipo1998, ipo2001, ipo2012, ipo2018)
 #rename site column
 colnames(all.years)[1] <- "Site"
 
+all.years$Year =as.factor(all.years$Year)
 ```
 
 The first step to examine visitor abundance between drought and non-drought years is to determine the correct distrubution for our data. It is most likely negative binomial, so we will start by checking for that. 
@@ -64,9 +70,7 @@ Now we are able to run our linear mixed effects model (glmmTMB) using a negative
 
 ```{r Adbunace model}
 
-abundancemod <- glmmTMB(Visitor.Abundance ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2")
-
-summary(abundancemod)
+abundancemod <- glmmTMB(Visitor.Abundance ~ Drought + Observers + Time + (1|Site/Year), all.years, family = "nbinom2")
 
 ```
 
