@@ -275,17 +275,75 @@ two <- cbind(drought, nondrought)
 
 ### iNEXT analysis - Visit Abundance 
 
-Next is the actual iNEXT analysis. We have decided to use only hill numbers 0 (species richness) and 1 (shannon's diversity). 
+Next is the actual iNEXT analysis. We have decided to use only hill numbers 0 (species richness) 
 
-#### all years
+#### by year
 
-The first step in iNEXT is to run the actual analysis, which then allows us to plot. 
+separate the years by diversity order (here just species richness). 
 
-```{r all iNEXT analysis}
-#iNEXT analysis using individual based rarefaction
-out <- iNEXT(tv, q=c(0, 1), datatype="abundance", endpoint=NULL)
+
+```{r analysis by diversity order}
+#species richness
+d1 <- iNEXT(tv, q=c(0), datatype="abundance", endpoint=NULL)
 
 ```
+
+
+```{r plotting by diversity order}
+
+# plot richness
+
+g3 <- ggiNEXT(d1, type=1, grey=T) + 
+  theme_classic() + 
+  xlim(0,350) +
+  ylim(0, 7.5) +
+  scale_colour_manual(values=c("#00BFC4", "#00BFC4", "#00BFC4","#F8766D","#F8766D")) +
+  scale_fill_manual(values=c("turquoise3", "turquoise3", "turquoise3", "indianred", "indianred")) +
+  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
+  labs(x = "number of individual visits", title = "Richness", y = "visitor category diversity") +
+  labs(title = "a)") +
+  theme(axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.02, size= 18, face="bold"), legend.title=element_blank(),legend.text = element_text(size=8), legend.position = c(0.89,0.3)) + 
+ guides(linetype = FALSE)
+
+# change size of text
+gb_3 <- ggplot_build(g3)
+gb_3$data[[1]]$size <- 4
+gt3 <- ggplot_gtable(gb_3)
+
+```
+
+# By Drought vs non-drought
+
+```{r analyze by hill number}
+i1 <- iNEXT(two, q=c(0), datatype="abundance", endpoint=NULL)
+```
+
+```{r}
+# richness
+order1 <- ggiNEXT(i1, type=1, grey=T) + 
+  xlim(0,300) +
+  ylim(0, 7.5) +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.02, face = "bold", size= 18), axis.title = element_text(size=16), axis.text=element_text(size=14), legend.position = c(0.85,0.2), legend.title=element_blank()) + 
+ guides(linetype = FALSE) +
+  scale_colour_manual(values=c("#F8766D","#00BFC4")) +
+  scale_fill_manual(values=c( "indianred1","turquoise3")) +
+  labs(x = "number of individual visits", y = "visitor category diversity") +
+   labs(title = "b)")
+
+gb_4 <- ggplot_build(order1)
+gb_4$data[[1]]$size <- 4
+gt4 <- ggplot_gtable(gb_4)
+
+
+#graph together
+
+grid.arrange(gt3, gt4, ncol=2)
+
+```
+
+
+#### To delete
 
 This first plot gives us `q=0` and `q=1` for year each. Each is is on a separate graphs. Note: This is not one of the final figures used in our manuscript.
 
@@ -307,21 +365,12 @@ This graph gives us important information about each year. Notably, Extrapolatio
 
 *Further work is needed to make the graph look better. Namely the legend and axis ranges. 
 
-#### Separating years by hill number
-
-While the previous graph is important, for our paper it will be more useful to separate the years by diversity order (i.e. species richness and shannons). 
-
-
-```{r analysis by diversity order}
-#species richness
-d1 <- iNEXT(tv, q=c(0), datatype="abundance", endpoint=NULL)
-
+``` {r}
 #shannons diversity 
 d2 <- iNEXT(tv, q=c(1), datatype="abundance", endpoint=NULL)
 ```
 
-
-```{r plotting by diversity order}
+``` {r}
 #plotting species richness 
 g1 <- ggiNEXT(d1, type=1) + 
   xlim(0,350) +
@@ -366,28 +415,6 @@ g2 <- ggiNEXT(d2, type=1) +
   labs(x = "number of individual visits", title = "Shannon", y = "visitor category diversity") +
  theme(axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14),
 legend.position = c(0.9,0.99), legend.title=element_blank(),legend.text = element_text(size=8))
-
-
-# if just richness
-
-g3 <- ggiNEXT(d1, type=1, grey=T) + 
-  theme_classic() + 
-  xlim(0,350) +
-  ylim(0, 7.5) +
-  scale_colour_manual(values=c("grey", "grey", "grey", "grey1", "grey1")) +
-  scale_fill_manual(values=c("grey60", "grey60", "grey60", "grey45", "grey45")) +
-  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
-  labs(x = "number of individual visits", title = "Richness", y = "visitor category diversity") +
-  labs(title = "a)") +
-  theme(axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.02, size= 18, face="bold"), legend.title=element_blank(),legend.text = element_text(size=8), legend.position = c(0.89,0.3)) + 
- guides(linetype = FALSE)
-
-gb_3 <- ggplot_build(g3)
-gb_3$data[[1]]$size <- 4
-gt3 <- ggplot_gtable(gb_3)
-
- #plot both together
-grid.arrange(g3, gt3, ncol = 2)
 ```
 
 Summary: These figures show higher diversity in the years 2018 and 2012. Utlizing a richness index (q=0), the three non-drought years (1997, 1998, 2001) show overlap, with slight overlap with 2018. Utlizing the Shannon's index (q=1), both 2012 and 2018 show higher diversity than the non-drought years.
@@ -395,8 +422,6 @@ Summary: These figures show higher diversity in the years 2018 and 2012. Utlizin
 Note: The error given describes 2012, which is cut off on the figure before observed visits are completed. Since it platues on the graphs this is not a problem. 
 
 Now that this is complete we will run an analysis with only two groups, drought and non-drought. This gets at our overall question in species richness difference between the two. Again, we expect higher species richness in drought years than non-drought years, indicating broader niche breadth. 
-
-#### Drought vs. Non-drought
 
 Now for the iNEXT analysis of drought vs. nondrought.
 
@@ -425,6 +450,7 @@ Note: Error is again describing the fact that all observed visits are not covere
 i1 <- iNEXT(two, q=c(0), datatype="abundance", endpoint=NULL)
 i2 <- iNEXT(two, q=c(1), datatype="abundance", endpoint=NULL)
 ```
+
 
 ```{r graphing by hill number}
 # species richness
