@@ -206,6 +206,8 @@ beta <- vegdist(all.years, method = "horn")
 
 
 ```{r}
-adonis(beta ~ Drought, all.des, perm = 999)
+# adonis(beta ~ Drought, all.des, perm = 999)
+
+adonis(all.years ~ Drought, all.des, perm = 100000, method= "horn")
 ```
 
