@@ -13,6 +13,7 @@ In this code the goal is to determine the significance of drought over different
 library(vegan)
 library(dplyr)
 library(GGally)
+library(tidyverse)
 ```
 
 Data is imported from an excel file containing various weather data points from Gothic, obtained from billy barr's website. 
@@ -27,6 +28,13 @@ weatherdf$Watercm= weatherdf$Water * 2.54
 
 # remove winters before 1994/95
 weatherdf = weatherdf[c(17:32,37:43),]
+
+# if only 2012 and 2018 are classified as drought
+weatherdf= weatherdf %>%
+  mutate(Drought_New = ifelse(Winter == "2011-12" | Winter== "2017-18", "Drought", "Non Drought"))
+
+sampleyears= weatherdf %>%
+  filter(Winter =)
 
 ```
 
@@ -55,20 +63,20 @@ The matrix needs to be formatted further to fit the form for the NMDS analysis. 
 dmat <- as.data.frame(mat) 
 
 #change columns to numeric
-dmat$Total <- as.numeric(dmat$Total)
-dmat$Apr.1 <- as.numeric(dmat$Apr.1)
-dmat$May.1 <- as.numeric(dmat$May.1)
-dmat$Water <- as.numeric(dmat$Water)
-dmat$Above.freezing <- as.numeric(dmat$Above.freezing)
-dmat$Days.covered <- as.numeric(dmat$Days.covered)
-dmat$Drought <- as.numeric(dmat$Drought)
+dmat$Total <- as.numeric(as.character(dmat$Total))
+dmat$Apr.1 <- as.numeric(as.character(dmat$Apr.1))
+dmat$May.1 <- as.numeric(as.character(dmat$May.1))
+dmat$Water <- as.numeric(as.character(dmat$Water))
+dmat$Above.freezing <- as.numeric(as.character(dmat$Above.freezing))
+dmat$Days.covered <- as.numeric(as.character(dmat$Days.covered))
+dmat$Drought <- as.numeric(as.character(dmat$Drought))
 
 #create value with drought information
 gr <- c(dmat$Drought)
 
 #remove drought column from other data
 colnames(dmat)[7] <- "7" #rename
-dmat2 <- dmat[, -7] #remove
+dmat2 <- dmat[, -c(7:9)] #remove
 ```
 
 Now that the data is formatted properly analysis can begin. Again, I will be using NMDS to visualize differences between drough and non-drought years. We expect that 2012 and 2018 will be drought years. 
@@ -119,6 +127,14 @@ rownames(des) <- des[,1]
 des[,1] <- NULL
 
 
+# if only classifying 2012 and 2018 as drought
+
+des= weatherdf[,c(1, 12)] #remove everything but drought status
+
+rownames(des) <- des[,1]
+des[,1] <- NULL
+
+
 ```
 
 Now that the data formatting is complete I can run the actual analysis. Here we are using Morisita-Horn.
@@ -130,6 +146,10 @@ dist.mat <- vegdist(dmat2, method = "horn")
 
 ```{r}
 adonis(dist.mat ~ Drought, des, perm = 999)
+
+#only 2012 and 2018 classified as drought
+model= adonis(dist.mat ~ Drought_New, des, perm = 999)
+
 ```
 
 Drought is highly significant! Our arbitrary drought catagorization explains multivariate composites of many weather variables.
