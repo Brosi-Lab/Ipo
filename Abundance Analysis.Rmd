@@ -33,7 +33,7 @@ ipo2001 <- read.csv("abundance_2001.csv") #2001
 ipo2012 <- read.csv("abundance_2012.csv") #2012
 ipo2018 <- read.csv("abundance_2018.csv") #2018
 
-#2012 was actually entered as 2001. Overwrote this
+#'Year' in the 2012 dataset was actually entered as '2001'. Overwrote this
 ipo2012$Year = 2012
 
 ```
@@ -71,21 +71,21 @@ Now we are able to run our linear mixed effects model (glmmTMB) using a negative
 ```{r Adbunace model}
 
 abundancemod <- glmmTMB(Visitor.Abundance ~ Drought + Observers + Time + (1|Site/Year), all.years, family = "nbinom2")
-
+summary(abundancemod)
 ```
 
 DESCRIPTION
 
 ```{r}
-gg <- residuals(model2)
+gg <- residuals(abundancemod)
 
 plot(gg)
 
 all.years$residuals <- gg
 
-all.years$fitted <- model2$fitted
+all.years$fitted <- abundancemod$fitted
 
-simoutput <- simulateResiduals(fittedModel = model2, n = 250)
+simoutput <- simulateResiduals(fittedModel = abundancemod, n = 250)
 
 plot(simoutput)
 ```
@@ -108,9 +108,19 @@ ggplot(all.years, aes(x=Drought, y=visithour)) +
   theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
 
 
-ggplot(all.years, aes(x=Drought, y=Visit.Abundance)) +
+# change factor levels for color plotting
+all.years$Drought <- factor(all.years$Drought, levels = c("Drought", "Non-drought"))
+
+ggplot(all.years, aes(x=Drought, y=Visitor.Abundance)) +
   geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
-  geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  geom_point(aes(colour = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  theme_classic() + 
+  labs(y="Visitor Abundance") +
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
+
+ggplot(all.years, aes(x=Drought, y=Visitor.Abundance)) +
+  geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
+  geom_point(aes(fill = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
   theme_classic() + 
   labs(y="Visitor Abundance") +
   theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
@@ -119,31 +129,3 @@ ggplot(all.years, aes(x=Drought, y=Visit.Abundance)) +
 ```
 
 DESCRIPTION
-
-```{r}
-c <- fitdist(all.years$Richness, "nbinom")
-
-plot(c)
-
-model3 <- glmmTMB(Richness ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2")
-
-summary(model3)
-
-gg2 <- residuals(model3)
-plot(gg2)
-
-
-all.years$residuals2 <- gg2
-
-all.years$fitted2 <- model3$fitted
-
-simoutput2 <- simulateResiduals(fittedModel = model3, n = 250)
-plot(simoutput2)
-
-ggplot(all.years, aes(x=Drought, y=Richness)) +
-  geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
-  geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
-  theme_bw() + 
-  labs(x="Drought", y="Richness")
-```
-
