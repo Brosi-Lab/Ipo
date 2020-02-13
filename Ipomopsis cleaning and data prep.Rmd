@@ -39,12 +39,36 @@ write.csv(file= "Ipomopsis visitation by visitor category all years.csv", all.ye
 
 
 
-Investigating model output glmmTMB
 
-Model convergence problem; non-positive-definite Hessian matrix. See vignette('troubleshooting') 
-Following [this vignette](https://cran.r-project.org/web/packages/glmmTMB/vignettes/troubleshooting.html)
+# Code boneyard
+
+No longer doing richness analysis
 
 ```{r}
-fixef(abundancemod)
+c <- fitdist(all.years$Richness, "nbinom")
+
+plot(c)
+
+model3 <- glmmTMB(Richness ~ Drought + Observers + Time + (Year|Site), all.years, family = "nbinom2")
+
+summary(model3)
+
+gg2 <- residuals(model3)
+plot(gg2)
+
+
+all.years$residuals2 <- gg2
+
+all.years$fitted2 <- model3$fitted
+
+simoutput2 <- simulateResiduals(fittedModel = model3, n = 250)
+plot(simoutput2)
+
+ggplot(all.years, aes(x=Drought, y=Richness)) +
+  geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
+  geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  theme_bw() + 
+  labs(x="Drought", y="Richness")
 ```
+
 
