@@ -19,6 +19,8 @@ library(fitdistrplus)
 library(DHARMa)
 library(ggplot2)
 library(tidyverse)
+library(gridExtra)
+
 
 ```
 
@@ -111,12 +113,12 @@ ggplot(all.years, aes(x=Drought, y=visithour)) +
 # change factor levels for color plotting
 all.years$Drought <- factor(all.years$Drought, levels = c("Drought", "Non-drought"))
 
-ggplot(all.years, aes(x=Drought, y=Visitor.Abundance)) +
+visit= ggplot(all.years, aes(x=Drought, y=Visitor.Abundance)) +
   geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
   geom_point(aes(colour = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
   theme_classic() + 
-  labs(y="Visitor Abundance") +
-  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
+  labs(y="Visitor Abundance", title = "(a)") +
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title  = element_text(hjust = 0.02, face = "bold", size= 18))
 
 ggplot(all.years, aes(x=Drought, y=Visitor.Abundance)) +
   geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
@@ -128,4 +130,36 @@ ggplot(all.years, aes(x=Drought, y=Visitor.Abundance)) +
 
 ```
 
-DESCRIPTION
+Richness analysis with glmm
+
+```{r}
+c <- fitdist(all.years$Richness, "nbinom")
+
+plot(c)
+
+model3 <- glmmTMB(Richness ~ Drought + Observers + Time + (1|Site/Year), all.years, family = "nbinom2")
+
+summary(model3)
+
+# check residuals
+gg2 <- residuals(model3)
+plot(gg2)
+
+
+all.years$residuals2 <- gg2
+
+all.years$fitted2 <- model3$fitted
+
+simoutput2 <- simulateResiduals(fittedModel = model3, n = 250)
+plot(simoutput2)
+
+richness= ggplot(all.years, aes(x=Drought, y=Richness)) +
+  geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
+  geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  theme_classic() + 
+  labs(x="Drought", y="Richness", title = "(b)") +
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title  = element_text(hjust = 0.02, face = "bold", size= 18))
+
+panel= grid.arrange(visit, richness, ncol=2)
+ggsave("Figure 1 Abundance and Richness", panel, device="pdf", width= 16.6, height = 14.0, units= "cm")
+```
