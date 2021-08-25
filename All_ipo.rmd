@@ -1,10 +1,10 @@
 ---
 title: "All Ipo"
-author: "Kelly Endres"
+author: "Kelly Endres and Connor Morozumi"
 date: "April 17, 2020"
 output: html_document
 ---
-This R Markdown file contains all code for Endres et al. 20xx manuscript investigating the effects of drought on Ipomopsis aggregata niche breadth. We utilized Ipomopsis visitation data from several sites over five years, 1997, 1998, 2001, 2012, and 2018, with 2012 and 2018 determined to be drought years. Between years we compared visitor abundance, community change, and richness. We also analyzed weather data to confirm drought year determination. 
+This R Markdown file contains all code for Endres et al. 2021 manuscript investigating the effects of drought on Ipomopsis aggregata niche breadth. We utilized Ipomopsis visitation data from several sites over five years, 1997, 1998, 2001, 2012, and 2018, with 2012 and 2018 determined to be drought years. Between years we compared visitor abundance, community change, and richness. We also analyzed weather data to confirm drought year determination. 
 
 ###Code Overview
 
@@ -15,8 +15,8 @@ This R Markdown file contains all code for Endres et al. 20xx manuscript investi
 3. Visitor Abundance
 + glmm abundance analysis
 4. Richness
-+ iNEXT analysis - Visit richness
 + glmm analysis - Visit richness
++ iNEXT analysis - Visit richness
 5. Community Change
 + Adonis analysis
 + NMDS
@@ -48,7 +48,7 @@ gothicweather.csv
 total visits per site per year by each visitor catagory.csv
 visit.abundance.by.observation.day.csv
 
-```{r}
+```{r load data}
 weatherdf = read.csv("gothicweather.csv")
 
 all= read.csv("total visits per site per year by each visitor catagory.csv")
@@ -163,6 +163,12 @@ ord <- metaMDS(dmat2)
 
 Because we have a large dataset, the function automatically performs a square root transformation using Wisconsin standardization. 
 
+Fit an envfit of apriori drought status
+```{r}
+data.envfit <- envfit(ord, gr, lwd = 2)
+```
+
+
 Plot the NMDS 
 
 ```{r plotting}
@@ -181,23 +187,18 @@ This visualization gives several important pieces of information. Green/blue spe
 ### 2. Visitation Summary Statistics
 
 
-``` {r}
-all= read.csv("total visits per site per year by each visitor catagory.csv")
-```
-
-```{r}
+```{r reshape visitation data for Table 1}
 all.long= all %>% 
   pivot_longer(cols = Butterfly:Wasp ,names_to = "Species" , values_to = "total.visits")
 
 Table1= merge(all.long %>% 
   group_by(Year, Species) %>% 
   summarise_at(vars(total.visits), funs(sum)) %>% 
-  pivot_wider(names_from = Species, values_from = total.visits )
-,
-all.long %>% 
+  pivot_wider(names_from = Species, values_from = total.visits ),
+
+  all.long %>% 
   group_by(Year) %>% 
-  summarise_at(vars(total.visits), funs(sum))
-, by = "Year")
+  summarise_at(vars(total.visits), funs(sum)), by = "Year")
 
 Table1 %>%
     mutate_at(vars(c("Bumblebee", "Butterfly","Hoverfly","Hummingbird","Other.fly","Solitary.bee","Wasp")), 
@@ -208,20 +209,12 @@ Table1 %>%
 ## 3. Visitor Abundance
 + glmm abundance analysis
 
-###Abundance
-
-With the following code we compare visitor abundance between years. This is important as we are not able to look at straight abundances between years due to numerous sampling effort differences. We want to compare these as it is an important aspect of how drought may impact plant-pollinator communities. 
+With the following code we compare visitor abundance between years. This is important as we are not able to look at straight abundances between years due to sampling effort differences. We want to compare these as it is an important aspect of how drought may impact plant-pollinator communities. 
 
 To examine abundance differences and account for sampling effort differences, we will be using a linear mixed effect model, glmmTMB adding several different fixed and random effects. 
 
-####Data formatting
 
-
-```{r}
-all.years.ab= read.csv("visit.abundance.by.observation.day.csv")
-```
-
-####Abundance Analysis
+###Abundance Analysis
 
 The first step to examine visitor abundance between drought and non-drought years is to determine the correct distribution for our data. It is most likely negative binomial, so we start by checking for that distribution.
 
@@ -252,7 +245,8 @@ summary(abundancemod)
 
 This indicates that the presence of drought impacts observed visitor abundance. The amount of time spent observing also impacts visitor abundance. 
 
-```{r}
+Checking assumptions with the package `DHARMa`
+```{r check model assumptions}
 gg <- residuals(abundancemod)
 
 plot(gg)
@@ -266,13 +260,8 @@ simoutput <- simulateResiduals(fittedModel = abundancemod, n = 250)
 plot(simoutput)
 ```
 
-
-```{r}
-all.years.ab$visithour <- all.years.ab$Visitor.Abundance/all.years.ab$Time
-```
-
-
-```{r}
+Plot 1a
+```{r plot visit abundance}
 # change factor levels for color plotting
 all.years.ab$Drought <- factor(all.years.ab$Drought, levels = c("Non-drought", "Drought"))
 
@@ -284,8 +273,9 @@ visit=ggplot(all.years.ab, aes(x=Drought, y=Visitor.Abundance)) +
   theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title  = element_text(hjust = 0.02, face = "bold", size= 18)) +
   scale_color_viridis(discrete=TRUE)
 
+visit
 ```
-
+** note plot may look slightly different each time the code is run because there is a `geom_jitter` function that operates randomly. This makes only superficial difference and does not change the interpretation of the graph.
 
 
 ## 4. Richness
@@ -357,369 +347,7 @@ year_mean %>%
 # Drought	3.183226	
 ```
 
-+ iNEXT analysis - Visit richness
-+ glmm analysis - Visit richness
-
-```{r}
-test= as.data.frame(t(Table1))
-names(test) <- test[1,]
-test <- test[-1,]
-
-#remove totals row
-test=test[-8,]
-
-# make values numeric
-cols <- c(1:ncol(test)) 
-test[,cols] <- as.numeric(as.character(unlist(stats[,cols])))
-
-# change to a matrix
-tv = as.matrix(test)
-```
-
-
-```{r drought dataframe}
-tvdf <- as.data.frame(tv)
-
-# FIGURE OUT WHY THESE VALUES ARE NOT THE SAME
-two= tvdf %>%
-  transmute(drought= tvdf$`2012` + tvdf$`2018`, nondrought= tvdf$`1997` + tvdf$`1998` +tvdf$`2001`)
-```
-
-
-# Discrepencies: 2012 solitary bees (33 vs 41). Totals for that year 736 in Table 1 in paper and 728 here
-
-#####1997: 
-
-```{r richness format 1997}
-
-##1997
-
-# format into total visits by site
-#treat year as factor
-ipo1997$Year <- as.factor(ipo1997$Year)
-#create dataframe with site, visitor, and total visits
-df97 <- cbind.data.frame(mdtsite = ipo1997$Site, mdtvisitor = ipo1997$Visitor, total.vis = ipo1997$Total.Visits)
-#organize data by site then visitor
-itv97 <- dcast(df97, mdtsite ~ mdtvisitor, sum)
-#rename rows as sites
-row.names(itv97) <- c("P", "T", "V")
-#delete first column where sites were previously 
-colnames(itv97)[1] <- "1" #rename
-itv97 <- itv97[, -1] #delete
-#transpose data
-itv97 <- t(itv97) 
-
-# create vector
-#sum row totals in new dataframe
-totals97 <- as.data.frame(rowSums(itv97))
-#add 0s until totals97 has 9 rows total
-totals97 <- rbind(totals97, list(0)) #wasp
-totals97 <- rbind(totals97, list(0)) #other fly
-
-#sort in decreasing order
-totals97 <- sort(totals97$`rowSums(itv97)`, decreasing=TRUE)
-```
-
-#####1998: 
-
-```{r richness format 1998}
-
-##1998
-
-# format into total visits by site
-#treat year as factor
-ipo1998$Year <- as.factor(ipo1998$Year)
-#create dataframe with site, visitor, and total visits
-df98 <- cbind.data.frame(mdtsite = ipo1998$Site, mdtvisitor = ipo1998$Visitor, total.vis = ipo1998$Total.Visits)
-#organize data by site then visitor
-itv98 <- dcast(df98, mdtsite ~ mdtvisitor, sum)
-#rename rows as sites
-row.names(itv98) <- c("P", "T", "V")
-#delete first column where sites were previously 
-colnames(itv98)[1] <- "1" #rename
-itv98 <- itv98[, -1] #delete
-#transpose data
-itv98 <- t(itv98) 
-
-# create vector
-#sum row totals in new dataframe
-totals98 <- as.data.frame(rowSums(itv98))
-#add 0s until totals97 has 9 rows like the others 
-totals98 <- rbind(totals98, list(0)) #wasp
-totals98 <- rbind(totals98, list(0)) #butterfly
-
-#sort in decreasing order
-totals98 <- sort(totals98$`rowSums(itv98)`, decreasing=TRUE)
-
-```
-
-#####2001: 
-
-```{r richness format 2001}
-
-##2001
-
-# format into toal visits by site
-#treat year as factor
-ipo2001$Year <- as.factor(ipo2001$Year)
-#create dataframe with site, visitor, and total visits
-df01 <- cbind.data.frame(mdtsite = ipo2001$Site, mdtvisitor = ipo2001$Visitor, total.vis = ipo2001$Total.Visits)
-#organize data by site then visitor
-itv01 <- dcast(df01, mdtsite ~ mdtvisitor, sum)
-#rename rows as sites
-row.names(itv01) <- c("P", "T", "V")
-#delete first column where sites were previously 
-colnames(itv01)[1] <- "1" #rename
-itv01 <- itv01[, -1] #delete
-#transpose data
-itv01 <- t(itv01) 
-itv01 <- itv01[-c(2),] #removes Gnat row
-itv01 <- itv01[-c(2),] #removes Hawkmoth row
-
-# create vector
-#sum row totals in new dataframe
-totals01 <- as.data.frame(rowSums(itv01))
-#add 0s until totals01 has 9 rows like the others 
-totals01 <- rbind(totals01, list(0)) #butterfly
-
-#sort in decreasing order
-totals01 <- sort(totals01$`rowSums(itv01)`, decreasing=TRUE)
-
-```
-
-#####2012:
-
-```{r richness format 2012}
-
-##2012
-
-#format into total vists by site
-#treat year as factor
-ipo2012$Year <- as.factor(ipo2012$Year)
-#treat NAs as 1
-ipo2012[is.na(ipo2012)] <- 1
-#create dataframe with site, visitor, and total visits
-df12 <- cbind.data.frame(mdtsite = ipo2012$Site, mdtvisitor = ipo2012$Visitor, total.vis = ipo2012$Total.Visits)
-#organize data by site then visitor
-itv12 <- dcast(df12, mdtsite ~ mdtvisitor, sum)
-#rename rows as sites
-row.names(itv12) <- c("Avery Picnic Slope", "Avery Picnic Upper", "Back of Baldy Bend", "Baldy Lunch", "Bellview Bench", "Bellview View", "billy's Hilly Lower", "billy's Hilly Upper", "Emerald Lake Lower", "Emerald Lake Upper", "End of Gothic Hill", "Kebler Pass", "Long Lake Parking Lot 1", "Long Lake Parking Lot 2", "Long Lake Parking Lot 3", "Long Lake Parking Lot 4", "Max Field Meadow Lower", "Max Field Meadow Upper", "Ol' Dusty Road", "Rosy Point Lower", "Rosy Point Upper", "Schofield/Vera Falls", "Slate River 2", "Up on dat hill", "Vera Falls", "Vera Falls 2")
-#delete first column where sites were previously 
-colnames(itv12)[1] <- "1" #rename
-itv12 <- itv12[, -1] #delete
-
-#transpose data
-itv12 <- t(itv12) 
-itv12 <- itv12[-c(3),] #removes Gnat column
-itv12 <- itv12[-c(6),] #removes Small insect column
-
-# create vector
-#sum row totals in new dataframe
-totals12 <- as.data.frame(rowSums(itv12))
-
-#sort in decreasing order
-totals12 <- sort(totals12$`rowSums(itv12)`, decreasing=TRUE)
-
-```
-
-#####2018:
-
-```{r richness format 2018}
-
-##2018
-
-#format into total visits by site
-#treat year as factor
-ipo2018$Year <- as.factor(ipo2018$Year)
-#create dataframe with site, visitor, and total visits
-df18 <- cbind.data.frame(mdtsite = ipo2018$Site, mdtvisitor = ipo2018$Visitor, total.vis = ipo2018$Total.Visits)
-#organize data by site then visitor
-itv18 <- dcast(df18, mdtsite ~ mdtvisitor, sum)
-#rename rows as sites
-row.names(itv18) <- c("Avery Slope", "Behind Rustler's Gultch", "Bellview Bench Park", "Bellview View", "East River Overlook", "Rosy Point", "Vera Falls")
-#delete first column where sites were previously 
-colnames(itv18)[1] <- "1" #rename
-itv18 <- itv18[, -1] #delete
-#transpose data
-itv18 <- t(itv18) 
-itv18 <- itv18[-c(6),] #removes Small insect column
-
-# create vector
-#sum row totals in new dataframe
-totals18 <- as.data.frame(rowSums(itv18))
-#add 0s until totals18 has 9 rows like the others
-totals18 <- rbind(totals18, list(0)) #solitary bee
-
-#sort in decreasing order
-totals18 <- sort(totals18$`rowSums(itv18)`, decreasing=TRUE)
-
-```
-
-Now that individual vectors are created for each year, we can combine them into one matrix. 
-
-```{r total visitation}
-
-#create total visitation matrix
-itv <- cbind(totals97, totals98, totals01, totals12, totals18)
-#rename columns by year
-colnames(itv) <- c("1997", "1998", "2001", "2012", "2018")
-```
-
-Next the drought and non-drought data is combined into a different dataframe. From the "itv" dataframe that contains all groups two new dataframes are created that sum the drought data (2012 and 2018) and then the non-drought data (1997, 1998, 2001). 
-
-```{r drought dataframe}
-
-itvdf <- as.data.frame(itv)
-
-##create drought dataframe
-#sum column totals into new dataframe
-drought <- transform(itvdf, drought = totals12 + totals18)
-drought <- drought[, -c(1:5)]
-drought <- as.data.frame(drought)
-
-##create nondrought dataframe
-#sum column totals into new dataframe
-nondrought <- transform(itvdf, nondrought = totals97 + totals98 + totals01)
-nondrought <- nondrought[, -c(1:5)]
-nondrought <- as.data.frame(nondrought)
-
-#combine into one dataframe
-two <- cbind(drought, nondrought)
-```
-
-
-``` {r}
-
-colnames(itv97) <- c("P97","T97", "V97")
-Wasps= c(0,0,0)
-Other_fly= c(0,0,0)
-itv97=rbind(itv97,Wasps, Other_fly)
- rownames(itv97)[7] <- "Other fly"
- 
- 
-colnames(itv98) <- c("P98","T98", "V98")
-Butterfly = c(0,0,0)
-itv98=rbind(itv98,Wasps, Butterfly)
-
-colnames(itv01) <- c("P01","T01", "V901") # has diff numb of species
-itv01= rbind(itv01, Butterfly)
-rownames(itv01)[6] <- "Wasps"
-
-
-colnames(itv18) <- paste(colnames(itv18), "18")
-
-colnames(itv12) <- paste(colnames(itv12), "12")
-
-# merge and the transpose into long dataframe
-
-test=cbind(itv97, itv98, itv01)
-test=merge(itv97,itv98, by="row.names",all.x=TRUE) # in differenet orders so need to deal with that first
-rownames(test) <- test[,1]
-test[,1] <- NULL
-
-testtwo= merge(test, itv01, by="row.names", all.x=T)
-row.names(testtwo)=testtwo[,1]
-testtwo[,1] <- NULL
-rownames(testtwo)[7] <- "Wasp"
-
-testthree= merge(testtwo, itv18, by="row.names", all.x=T)
-row.names(testthree)=testthree[,1]
-testthree[,1] <- NULL
-
-testfour= merge(testthree, itv12, by="row.names", all.x=T)
-row.names(testfour)=testfour[,1]
-testfour[,1] <- NULL
-
-
-testfour[is.na(testfour)] <- 0
-```
- 
-``` {r} 
-##create drought dataframe
-#sum column totals into new dataframe)
-drought <- transform(tvdf, drought = totals12 + totals18)
-drought <- drought[, -c(1:5)]
-drought <- as.data.frame(drought)
-
-##create nondrought dataframe
-#sum column totals into new dataframe
-nondrought <- transform(tvdf, nondrought = totals97 + totals98 + totals01)
-nondrought <- nondrought[, -c(1:5)]
-nondrought <- as.data.frame(nondrought)
-
-#combine into one dataframe
-two <- cbind(drought, nondrought)
-```
-### iNEXT analysis - Visit Abundance 
-
-Next is the actual iNEXT analysis. We have decided to use only hill numbers 0 (species richness) 
-
-#### by year
-
-separate the years by diversity order (here just species richness). 
-
-
-```{r analysis by diversity order}
-#species richness
-d1 <- iNEXT(tv, q=c(0), datatype="abundance", endpoint=NULL)
-
-```
-
-
-```{r plotting by diversity order}
-
-# plot richness
-
-g3 <- ggiNEXT(d1, type=1, grey=T) + 
-  theme_classic() + 
-  xlim(0,350) +
-  ylim(0, 7.5) +
-  scale_colour_manual(values=c("#00BFC4", "#00BFC4", "#00BFC4","#F8766D","#F8766D")) +
-  scale_fill_manual(values=c("turquoise3", "turquoise3", "turquoise3", "indianred", "indianred")) +
-  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
-  labs(x = "Number of individual visits", title = "Richness", y = "Visitor category diversity") +
-  labs(title = "(b)") +
-  theme(axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.02, size= 18, face="bold"), legend.title=element_blank(),legend.text = element_text(size=8), legend.position = c(0.89,0.3)) + 
- guides(linetype = FALSE)
-
-# change size of text
-gb_3 <- ggplot_build(g3)
-gb_3$data[[1]]$size <- 4
-gt3 <- ggplot_gtable(gb_3)
-
-```
-# By Drought vs non-drought
-
-```{r analyze by hill number}
-i1 <- iNEXT(two, q=c(0), datatype="abundance", endpoint=NULL)
-```
-
-```{r}
-# richness
-order1 <- ggiNEXT(i1, type=1, grey=T) + 
-  xlim(0,300) +
-  ylim(0, 7.5) +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.02, face = "bold", size= 18), axis.title = element_text(size=16), axis.text=element_text(size=14), legend.position = c(0.85,0.2), legend.title=element_blank()) + 
- guides(linetype = FALSE) +
-  scale_colour_manual(values=c("#F8766D","#00BFC4")) +
-  scale_fill_manual(values=c( "indianred1","turquoise3")) +
-  labs(x = "Number of individual visits", y = "Visitor category diversity") +
-   labs(title = "(a)")
-
-gb_4 <- ggplot_build(order1)
-gb_4$data[[1]]$size <- 4
-gt4 <- ggplot_gtable(gb_4)
-
-
-#graph together
-
-panel= grid.arrange(gt4, gt3, ncol=2)
-ggsave("Figure 2 Rarefied Richness.pdf", panel, device="pdf", width= 16.6, height = 12, units= "cm")
-```
-
-
-Richness analysis with glmm
+##Richness analysis with glmm
 
 ```{r}
 c <- fitdist(all.years.ab$Richness, "nbinom")
@@ -761,21 +389,103 @@ panel=plot_grid(visit, richness, labels = c('A', 'B'))
 ggsave("Figure 1 Abundance and Richness_revision", panel, device="pdf", width= 16.6, height = 14.0, units= "cm")
 ```
 
+# iNEXT analysis - Visit richness
+
+```{r}
+totals= as.data.frame(t(Table1))
+names(totals) <- totals[1,]
+totals <- totals[-1,]
+
+#remove totals row
+totals=totals[-8,]
+
+# change to a matrix
+tv = as.matrix(totals)
+```
+
+Next the drought and non-drought data is combined into a different dataframe. Sum the drought data (2012 and 2018) and then the non-drought data (1997, 1998, 2001). 
+
+```{r}
+grouped=totals %>% 
+  transmute(Drought= `2012`+ `2018`, Nondrought= `1997`+ `1998` +`2001`)
+```
+
+
+Next is the actual iNEXT analysis. We use only hill numbers 0 (species richness) 
+
+#### by year
+
+separate the years by diversity order (here just species richness). 
+
+```{r inext by year}
+#species richness
+d1 <- iNEXT(tv, q=c(0), datatype="abundance", endpoint=NULL)
+
+```
+
+
+```{r plot 2b}
+
+# plot richness
+
+g3 <- ggiNEXT(d1, type=1, grey=T) + 
+  theme_classic() + 
+  xlim(0,350) +
+  ylim(0, 7.5) +
+  scale_colour_manual(values=c("#440154FF", "#440154FF", "#440154FF","#FDE725FF","#FDE725FF")) +
+  scale_fill_manual(values=c("#440154FF", "#440154FF", "#440154FF","#FDE725FF","#FDE725FF")) +
+  scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
+  labs(x = "Number of individual visits", y = "Visitor category diversity") +
+  theme(axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.02, size= 18, face="bold"), legend.title=element_blank(),legend.text = element_text(size=8), legend.position = c(0.89,0.3)) + 
+ guides(linetype = FALSE)
+
+# change size of text
+gb_3 <- ggplot_build(g3)
+gb_3$data[[1]]$size <- 4
+gt3 <- ggplot_gtable(gb_3)
+
+```
+
+# By Drought vs non-drought
+
+```{r grouped inext}
+i1 <- iNEXT(grouped, q=c(0), datatype="abundance", endpoint=NULL)
+```
+
+```{r plot fig 2}
+# richness
+gt4 <- ggiNEXT(i1, type=1, grey=T) + 
+  xlim(0,300) +
+  ylim(0, 7.5) +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.02, face = "bold", size= 18), axis.title = element_text(size=16), axis.text=element_text(size=14), legend.position = c(0.85,0.2), legend.title=element_blank()) + 
+ guides(linetype = FALSE) +
+  scale_colour_manual(values=c("#FDE725FF","#440154FF")) +
+  scale_fill_manual(values=c( "#FDE725FF","#440154FF")) +
+  labs(x = "Number of individual visits", y = "Visitor category diversity") 
+   # labs(title = "(a)")
+
+gb_4 <- ggplot_build(gt4)
+gb_4$data[[1]]$size <- 4
+gt4 <- ggplot_gtable(gb_4)
+
+
+
+#graph together
+
+panel= grid.arrange(gt4, gt3, ncol=2)
+ggsave("Figure 2 Rarefied Richness.pdf", panel, device="pdf", width= 16.6, height = 12, units= "cm")
+```
 
 ### 5. Community Change
 + Adonis analysis
 + NMDS
-
 
 This set of analyses looks at differences in community composition between drought and non-drought years via dissimilarity using permutational multivariate analyses. This requires construction  of community similarity/dissimilarity matrices and conducting Adonis analyses, with drought vs. nondrought as the fixed effects. Adonis is useful for this analysis as it uses strata which takes into account random effects. We use the Morisita-Horn index with Adonis as it is insensitive to differences in sampling effort among categories. Therefore we can use raw data without correcting for sampling effort. 
 
 ####Data formatting
 
 Load dataframe containing total visits per site by each visitor category. 
-
-``` {r}
-all= read.csv("total visits per site per year by each visitor catagory.csv")
-```
 
 Make df into a matrix
 ``` {r}
@@ -827,54 +537,17 @@ nmds
 
 This gives us lots of information. We can see the transformations used on the data (wisconsin(sqrt)), the distance measure used (horn), number of dimensions (2), as well as other outputs. The output is automatically rotated so that axis 1 has larger explanatory power. Goodness of fit is given with stress. Here, stress = 0.18 indicating that the output is a fair match for this dataset. 
 
-I also want to look at which variables are driving distance. 
-
-```{r variables distance}
-#pull nmds scores for visitor categories
-visitor.cat.scores = as.data.frame(scores(nmds, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
-visitor.cat.scores$species = rownames(visitor.cat.scores)
-
-#pull nmds scores for sites
-data.scores = as.data.frame(scores(nmds))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
-data.scores$site = rownames(data.scores)  # create a column of site names, from the rownames of data.scores
-
-data.scores.env= cbind(data.scores, all.des)
-
-#reorder drought vs non-drought to flip the color scheme around
-data.scores.env$Drought = relevel(factor(data.scores.env$Drought), ref = "Non-drought") 
-
-```
-
-
 Plot it
-```{r plotting}
+```{r plot fig3}
 
 #plot NMDS
-nmds.plot= ggplot() + 
-  geom_point(aes(x=NMDS1, y=NMDS2, shape=Drought,color=Drought),size=3, data.scores.env) + # add the point markers
-  geom_text(aes(x=NMDS1, y=NMDS2, label=species),alpha=0.5, visitor.cat.scores) +  # add the species labels
-  # geom_text(aes(x=NMDS1, y=NMDS2, label=site),size=6,vjust=0, data.scores.env) +  # add the site labels
-  scale_color_viridis(discrete=TRUE)+
-  coord_equal() +
-  theme_bw() + 
-  theme(axis.text.x = element_blank(),  # remove x-axis text
-        axis.text.y = element_blank(), # remove y-axis text
-        axis.ticks = element_blank(),  # remove axis ticks
-        axis.title.x = element_text(size=18), # remove x-axis labels
-        axis.title.y = element_text(size=18), # remove y-axis labels
-        panel.background = element_blank(), 
-        panel.grid.major = element_blank(),  #remove major-grid labels
-        panel.grid.minor = element_blank(),  #remove minor-grid labels
-        plot.background = element_blank(),
-        legend.position = "top", legend.title = element_blank(), legend.text = element_text(size= 12))
-
-#achieves basically the same thing but with the ordiellipse
-pdf('fig3.pdf')
+  pdf('fig3.pdf')
   pl <- ordiplot(nmds, type = "none")
 points(pl, "sites", pch=c(rep(17, 9), rep(19, 33)), col=c(rep("#440154FF", 9), rep("#FDE725FF", 33)), bg=c(rep("#440154FF", 9), rep("#FDE725FF", 33)), cex=1.2)
 ordiellipse(nmds,groups=Drought,draw="polygon",col=c("#FDE725FF", "#440154FF"),label=F)
 text(pl, "species", col="black", cex=1.2, font = 1)
 dev.off()
+
 ```
 
 

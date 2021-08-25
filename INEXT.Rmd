@@ -271,6 +271,7 @@ nondrought <- as.data.frame(nondrought)
 
 #combine into one dataframe
 two <- cbind(drought, nondrought)
+
 ```
 
 ### iNEXT analysis - Visit Abundance 
@@ -297,11 +298,10 @@ g3 <- ggiNEXT(d1, type=1, grey=T) +
   theme_classic() + 
   xlim(0,350) +
   ylim(0, 7.5) +
-  scale_colour_manual(values=c("#00BFC4", "#00BFC4", "#00BFC4","#F8766D","#F8766D")) +
-  scale_fill_manual(values=c("turquoise3", "turquoise3", "turquoise3", "indianred", "indianred")) +
+  scale_colour_manual(values=c("#440154FF", "#440154FF", "#440154FF","#FDE725FF","#FDE725FF")) +
+  scale_fill_manual(values=c("#440154FF", "#440154FF", "#440154FF","#FDE725FF","#FDE725FF")) +
   scale_shape_manual(values=c(15, 16, 17, 19, 18)) +
-  labs(x = "Number of individual visits", title = "Richness", y = "Visitor category diversity") +
-  labs(title = "(b)") +
+  labs(x = "Number of individual visits", y = "Visitor category diversity") +
   theme(axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.02, size= 18, face="bold"), legend.title=element_blank(),legend.text = element_text(size=8), legend.position = c(0.89,0.3)) + 
  guides(linetype = FALSE)
 
@@ -316,6 +316,9 @@ gt3 <- ggplot_gtable(gb_3)
 
 ```{r analyze by hill number}
 i1 <- iNEXT(two, q=c(0), datatype="abundance", endpoint=NULL)
+
+# change factor levels for color plotting
+i1$Site <- factor(i1$Site, levels = c("drought", "non-drought"))
 ```
 
 ```{r}
@@ -326,10 +329,10 @@ order1 <- ggiNEXT(i1, type=1, grey=T) +
   theme_classic() +
   theme(plot.title = element_text(hjust = 0.02, face = "bold", size= 18), axis.title = element_text(size=16), axis.text=element_text(size=14), legend.position = c(0.85,0.2), legend.title=element_blank()) + 
  guides(linetype = FALSE) +
-  scale_colour_manual(values=c("#F8766D","#00BFC4")) +
-  scale_fill_manual(values=c( "indianred1","turquoise3")) +
-  labs(x = "Number of individual visits", y = "Visitor category diversity") +
-   labs(title = "(a)")
+  scale_colour_manual(values=c("#FDE725FF","#440154FF")) +
+  scale_fill_manual(values=c( "#FDE725FF","#440154FF")) +
+  labs(x = "Number of individual visits", y = "Visitor category diversity") 
+   # labs(title = "(a)")
 
 gb_4 <- ggplot_build(order1)
 gb_4$data[[1]]$size <- 4
@@ -340,6 +343,11 @@ gt4 <- ggplot_gtable(gb_4)
 
 panel= grid.arrange(gt4, gt3, ncol=2)
 ggsave("Figure 2 Rarefied Richness", panel, device="pdf", width= 16.6, height = 12, units= "cm")
+
+# use cowplot
+panel=plot_grid(gt4, gt3, labels = c('A', 'B'))
+
+ggsave("Figure 2 Rarefied Richness_revision", panel, device="pdf", width= 16.6, height = 12.0, units= "cm")
 ```
 
 

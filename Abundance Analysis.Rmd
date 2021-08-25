@@ -20,7 +20,8 @@ library(DHARMa)
 library(ggplot2)
 library(tidyverse)
 library(gridExtra)
-
+library(viridis)
+library(cowplot)
 
 ```
 
@@ -52,6 +53,72 @@ colnames(all.years)[1] <- "Site"
 all.years$Year =as.factor(all.years$Year)
 ```
 
+# Summary stats
+```{r}
+# Just averages across year-site 
+all.years %>% 
+  group_by(Year, Site) %>%
+  tally(Richness)
+  
+all.years %>% 
+  group_by(Drought) %>%
+  summarize(mean_rich= mean(Richness))
+
+# Mean richness was1.750 in drought years and 0.697 in non-drought years
+
+# but this doesn't account for effort so mean of a mean of a mean might yield different results
+
+# first average within site-year
+mean= all.years %>%
+  group_by(Year, Site, Drought) %>%
+  summarize(site_rich= mean(Richness))
+
+
+year_mean= mean %>%
+  group_by(Year, Drought) %>%
+  summarize(year_rich= mean(site_rich))
+
+year_mean %>%
+  group_by(Drought) %>%
+  summarize(grand_mean= mean(year_rich))
+
+# changes values slightly
+# Non-drought	0.6931687			
+# Drought	1.4957265	
+
+# Abundance the same way
+# Just averages across year-site 
+all.years %>% 
+  group_by(Year, Site) %>%
+  tally(Visitor.Abundance)
+  
+all.years %>% 
+  group_by(Drought) %>%
+  summarize(mean_abund= mean(Visitor.Abundance))
+
+# Mean abundance was 3.875 in drought years and 1.725 in non-drought years
+
+# but this doesn't account for effort so mean of a mean of a mean might yield different results
+
+# first average within site-year
+mean= all.years %>%
+  group_by(Year, Site, Drought) %>%
+  summarize(site_abud= mean(Visitor.Abundance))
+
+
+year_mean= mean %>%
+  group_by(Year, Drought) %>%
+  summarize(year_abund= mean(site_abud))
+
+year_mean %>%
+  group_by(Drought) %>%
+  summarize(grand_mean= mean(year_abund))
+
+# changes values slightly
+# Non-drought	1.670445			
+# Drought	3.183226	
+```
+
 The first step to examine visitor abundance between drought and non-drought years is to determine the correct distrubution for our data. It is most likely negative binomial, so we will start by checking for that. 
 
 ```{r abundance distribution fit}
@@ -73,7 +140,15 @@ Now we are able to run our linear mixed effects model (glmmTMB) using a negative
 ```{r Adbunace model}
 
 abundancemod <- glmmTMB(Visitor.Abundance ~ Drought + Observers + Time + (1|Site/Year), all.years, family = "nbinom2")
+sum= summary(abundancemod)
+
+car::Anova(abundancemod)
+aov(abundancemod)
+
+tab_model(abundancemod, show.ci = FALSE)
+
 summary(abundancemod)
+# write.csv(sum.tab, "abundance.glmm.sum.csv") # not working
 ```
 
 DESCRIPTION
@@ -107,7 +182,8 @@ ggplot(all.years, aes(x=Drought, y=visithour)) +
   geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
   theme_classic() + 
   labs(x="Drought", y="Visits per Hour") +
-  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14)) +
+  scale_color_viridis(discrete=TRUE)
 
 
 # change factor levels for color plotting
@@ -115,22 +191,24 @@ all.years$Drought <- factor(all.years$Drought, levels = c("Drought", "Non-drough
 
 visit= ggplot(all.years, aes(x=Drought, y=Visitor.Abundance)) +
   geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
-  geom_point(aes(colour = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  geom_point(aes(colour = Drought), alpha = 0.5, size = 3, position = position_jitter(w=0.2, h=0)) +
   theme_classic() + 
   labs(y="Visitor Abundance", title = "(a)") +
-  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title  = element_text(hjust = 0.02, face = "bold", size= 18))
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title  = element_text(hjust = 0.02, face = "bold", size= 18)) +
+  scale_color_viridis(discrete=TRUE)
 
-ggplot(all.years, aes(x=Drought, y=Visitor.Abundance)) +
+cow.a=ggplot(all.years, aes(x=Drought, y=Visitor.Abundance)) +
   geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
-  geom_point(aes(fill = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  geom_point(aes(colour = Drought), alpha = 0.5, size = 3, position = position_jitter(w=0.2, h=0)) +
   theme_classic() + 
   labs(y="Visitor Abundance") +
-  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title = element_text(hjust = 0.5, size= 14))
-  
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title  = element_text(hjust = 0.02, face = "bold", size= 18)) +
+  scale_color_viridis(discrete=TRUE)
 
 ```
 
 Richness analysis with glmm
+
 
 ```{r}
 c <- fitdist(all.years$Richness, "nbinom")
@@ -158,8 +236,27 @@ richness= ggplot(all.years, aes(x=Drought, y=Richness)) +
   geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
   theme_classic() + 
   labs(x="Drought", y="Richness", title = "(b)") +
-  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title  = element_text(hjust = 0.02, face = "bold", size= 18))
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title  = element_text(hjust = 0.02, face = "bold", size= 18)) +
+  scale_color_viridis(discrete=TRUE)
+
+cow.b=ggplot(all.years, aes(x=Drought, y=Richness)) +
+  geom_boxplot(outlier.alpha  =  0, size = 0.5, width = 0.5) +
+  geom_point(aes(color = Drought), alpha = 0.3, size = 3, position = position_jitter(w=0.2, h=0)) +
+  theme_classic() + 
+  labs(x="Drought", y="Richness") +
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title = element_text(size=16), axis.text=element_text(size=14), plot.title  = element_text(hjust = 0.02, face = "bold", size= 18)) +
+  scale_color_viridis(discrete=TRUE)
+
 
 panel= grid.arrange(visit, richness, ncol=2)
 ggsave("Figure 1 Abundance and Richness", panel, device="pdf", width= 16.6, height = 14.0, units= "cm")
 ```
+
+Put plots 1a and 1b together
+```{r}
+# use cowplot
+panel=plot_grid(cow.a, cow.b, labels = c('A', 'B'))
+
+ggsave("Figure 1 Abundance and Richness_revision", panel, device="pdf", width= 16.6, height = 14.0, units= "cm")
+```
+

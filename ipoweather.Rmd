@@ -26,17 +26,39 @@ weatherdf<- read.csv("gothicweather.csv")
 # water is in inches so convert to cm
 weatherdf$Watercm= weatherdf$Water * 2.54
 
-# remove winters before 1994/95
-weatherdf = weatherdf[c(17:32,37:43),]
 
 # if only 2012 and 2018 are classified as drought
 weatherdf= weatherdf %>%
   mutate(Drought_New = ifelse(Winter == "2011-12" | Winter== "2017-18", "Drought", "Non Drought"))
 
-sampleyears= weatherdf %>%
-  filter(Winter =)
 
 ```
+
+Initial determination based on difference from long term means
+```{r}
+mean(weatherdf$Total) # 1066.651
+round(mean(weatherdf$Total) -(1.5*sd(weatherdf$Total)), 0)
+
+650/ mean(weatherdf$Total) 
+
+1.5*sd(weatherdf$Total) #568.41
+2*sd(weatherdf$Watercm) #37.66738
+
+weatherdf %>% 
+  mutate(is.sd= ifelse(Total < 700, "less", "no"))
+
+weatherdf %>% 
+  mutate(is.sd= ifelse(Total <= round(mean(weatherdf$Total) -(1.5*sd(weatherdf$Total)), 0), "less", "no"))
+```
+
+
+For subsequent analyses let's only use data from the study period
+
+```{r}
+# remove winters before 1994/95
+weatherdf = weatherdf[c(17:32,37:43),]
+```
+
 
 With the data loaded, it needs to be reformatted as a matrix. The non-numeric columns need to be removed, as they can't be used in the nmds. 
 

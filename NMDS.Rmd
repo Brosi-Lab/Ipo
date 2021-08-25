@@ -237,6 +237,19 @@ ordiplot(nmds,type="n") + # no points
   orditorp(nmds,display="sites", col=c(rep("turquoise4", 9), rep("firebrick", 33)), cex=.8, air=0.01) #add sites
   ordiellipse(nmds, Drought, draw = "polygon", col=c("mediumturquoise", "indianred1"), kind = "sd", alpha = c(50, 50)) #add overlap circles 
 
+ordiplot(nmds,type="n") + # no points 
+  theme_bw()
+  orditorp(nmds,display="species",col="black",air=1, cex = 1.5) #add speices
+  orditorp(nmds,display="sites", col=c(rep("#440154FF", 9), rep("#FDE725FF", 33)), cex=1, air=200, pch= 19) #add sites
+  ordiellipse(nmds, Drought, draw = "polygon", col=c("#440154FF", "#FDE725FF"), kind = "sd", alpha = c(50, 50)) #add overlap circles   
+
+  pdf('fig3.pdf')
+  pl <- ordiplot(nmds, type = "none")
+points(pl, "sites", pch=c(rep(17, 9), rep(19, 33)), col=c(rep("#440154FF", 9), rep("#FDE725FF", 33)), bg=c(rep("#440154FF", 9), rep("#FDE725FF", 33)), cex=1.2)
+ordiellipse(nmds,groups=Drought,draw="polygon",col=c("#FDE725FF", "#440154FF"),label=F)
+text(pl, "species", col="black", cex=1.2, font = 1)
+dev.off()
+
 ```
 
 

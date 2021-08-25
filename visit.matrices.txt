@@ -1,0 +1,91 @@
+$itv97
+              P  T  V
+Bumblebee     0 57  4
+Butterfly     1  0  0
+Hoverfly     31 29 12
+Hummingbird  85  0  0
+Solitary bee  9  5  0
+
+$itv98
+              P T  V
+Bumblebee     2 0  0
+Hoverfly     15 0  7
+Hummingbird  66 0 49
+Other fly    14 2  7
+Solitary bee  5 3  2
+
+$itv01
+              P  T  V
+Bumblebee     0  5  2
+Hoverfly     40  1 93
+Hummingbird  14 44 79
+Other fly     1  2 11
+Solitary bee  2  0  2
+Wasp          0  7  3
+
+$itv12
+             Avery Picnic Slope Avery Picnic Upper Back of Baldy Bend Baldy Lunch Bellview Bench Bellview View
+Bumblebee                     0                  0                  0           0              0             0
+Butterfly                     0                  0                  0           1              0             0
+Hoverfly                      4                 19                 10           0              1             2
+Hummingbird                   0                 40                  0          18              0           196
+Other fly                     1                  9                  1          19              5             4
+Small insect                  0                  1                  2           4              1             0
+Wasp                          1                  1                  1           1              4             5
+             billy's Hilly Lower billy's Hilly Upper Emerald Lake Lower Emerald Lake Upper End of Gothic Hill
+Bumblebee                      0                   0                  0                  1                  0
+Butterfly                      1                   0                  0                  1                  0
+Hoverfly                       0                   0                  2                  4                  0
+Hummingbird                    0                   0                  0                  0                  9
+Other fly                      0                   0                  3                  0                  5
+Small insect                   1                   0                  4                  0                  1
+Wasp                           0                   3                  1                  8                  1
+             Kebler Pass Long Lake Parking Lot 1 Long Lake Parking Lot 2 Long Lake Parking Lot 3
+Bumblebee              1                       0                       0                       0
+Butterfly              1                       0                       1                       0
+Hoverfly              25                       1                       0                       0
+Hummingbird            0                       0                       1                       0
+Other fly              0                       0                       1                      15
+Small insect           0                       0                       0                       1
+Wasp                   0                       0                       0                       0
+             Long Lake Parking Lot 4 Max Field Meadow Lower Max Field Meadow Upper Ol' Dusty Road
+Bumblebee                          0                     17                      0              0
+Butterfly                          0                      4                      1              0
+Hoverfly                           0                      4                      1              3
+Hummingbird                        0                      5                    117              0
+Other fly                          1                      0                      1              4
+Small insect                      11                      5                      0              2
+Wasp                               0                      3                      1              5
+             Rosy Point Lower Rosy Point Upper Schofield/Vera Falls Slate River 2 Up on dat hill Vera Falls
+Bumblebee                   0                1                    0             0              0          0
+Butterfly                   2                1                    0             0              0          0
+Hoverfly                    0                0                    3             0              0         20
+Hummingbird                 0                0                    0             0             51          0
+Other fly                   0                0                    0             1              4          0
+Small insect                0                3                    1             0              4          0
+Wasp                        1                5                    0             2              3          0
+             Vera Falls 2
+Bumblebee               0
+Butterfly               0
+Hoverfly                6
+Hummingbird             0
+Other fly               0
+Small insect            0
+Wasp                    0
+
+$itv18
+            Avery Slope Behind Rustler's Gultch Bellview Bench Park Bellview View East River Overlook Rosy Point
+Bumblebee             0                       0                   0             3                   0          0
+Butterfly             0                       0                   1             0                   0          0
+Hoverfly              0                       0                  11             0                   0          1
+Hummingbird           2                       0                   0            14                   0          0
+Other fly             0                       0                   1             0                   0          3
+Wasp                  0                       0                   2             0                   1          7
+            Vera Falls
+Bumblebee            0
+Butterfly            0
+Hoverfly             0
+Hummingbird          3
+Other fly            0
+Wasp                 0
+
